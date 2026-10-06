@@ -57,6 +57,8 @@ jobs:
       - run: npm ci
       - run: npm run prepare-app
       - name: Empaquetar y publicar
-        run: npx electron-builder --publish always -c.extraMetadata.version=${{ needs.release.outputs.version }}
+        # bash también en Windows: PowerShell parte el argumento -c.extraMetadata.version
+        shell: bash
+        run: npx electron-builder --publish always --config.extraMetadata.version=${{ needs.release.outputs.version }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
