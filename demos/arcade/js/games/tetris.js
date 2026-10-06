@@ -7,6 +7,7 @@ ZAP.register({
     { id: 'ultra', name: 'Contrarreloj', desc: 'Dos minutos para hacer todos los puntos posibles.' },
     { id: 'ghost', name: 'Fantasma', desc: 'Las piezas colocadas se desvanecen. Memoriza el tablero.' }
   ],
+  skins: [{ id: 'glass', name: 'Cristal', lvl: 0 }, { id: 'flat', name: 'Plano', lvl: 2 }, { id: 'neon', name: 'Neón', lvl: 4 }, { id: 'retro', name: 'Retro', lvl: 6 }],
   hint: '<kbd>←</kbd> <kbd>→</kbd> mover, <kbd>↓</kbd> bajar, <kbd>↑</kbd> o <kbd>X</kbd> girar, <kbd>Z</kbd> girar al revés, <kbd>Espacio</kbd> caída directa, <kbd>C</kbd> o <kbd>Shift</kbd> guardar pieza. En el móvil usa los botones. Limpiar 4 líneas a la vez es un ZAP.',
   ach: [
     { id: 'tet4', name: '¡ZAP!', desc: 'Limpia 4 líneas a la vez', icon: 'tetris', manual: true },
@@ -27,7 +28,7 @@ ZAP.register({
     };
     const NAMES = Object.keys(SHAPES);
     const pcol = () => ({ I: COL.cyan, O: COL.amber, T: COL.violet, S: COL.lime, Z: COL.magenta, J: mix(COL.cyan, COL.violet, .6), L: mix(COL.amber, COL.magenta, .55) });
-    let PC = pcol();
+    let PC = pcol(), skin = 'glass';
     const rotCW = m => m[0].map((_, x) => m.map(row => row[x]).reverse());
     const rotCCW = m => m[0].map((_, x) => m.map(row => row[row.length - 1 - x]));
 
@@ -176,10 +177,15 @@ ZAP.register({
     function cell(px, py, col, a, size) {
       const s = size || C;
       ctx.globalAlpha = a == null ? 1 : a;
-      ctx.fillStyle = mix(col, COL.ink, .45); ctx.fillRect(px, py, s, s);
-      ctx.fillStyle = col; ctx.fillRect(px + 1, py + 1, s - 2, s - 2);
-      ctx.fillStyle = rgba(COL.text, .28); ctx.fillRect(px + 1, py + 1, s - 2, Math.max(2, s * .16)); ctx.fillRect(px + 1, py + 1, Math.max(2, s * .12), s - 2);
-      ctx.fillStyle = rgba(COL.ink, .3); ctx.fillRect(px + 1, py + s - Math.max(2, s * .14), s - 2, Math.max(2, s * .14) - 1);
+      if (skin === 'flat') { ctx.fillStyle = col; ctx.fillRect(px + 1, py + 1, s - 2, s - 2); }
+      else if (skin === 'neon') { ctx.fillStyle = rgba(col, .18); ctx.fillRect(px + 1, py + 1, s - 2, s - 2); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(px + 2, py + 2, s - 4, s - 4); }
+      else if (skin === 'retro') { const c = COL.cyan; ctx.fillStyle = mix(COL.ink, c, .9); ctx.fillRect(px + 1, py + 1, s - 2, s - 2); ctx.fillStyle = COL.ink; ctx.fillRect(px + 3, py + 3, s - 6, s - 6); ctx.fillStyle = mix(COL.ink, c, .9); ctx.fillRect(px + 5, py + 5, Math.max(1, s - 10), Math.max(1, s - 10)); }
+      else {
+        ctx.fillStyle = mix(col, COL.ink, .45); ctx.fillRect(px, py, s, s);
+        ctx.fillStyle = col; ctx.fillRect(px + 1, py + 1, s - 2, s - 2);
+        ctx.fillStyle = rgba(COL.text, .28); ctx.fillRect(px + 1, py + 1, s - 2, Math.max(2, s * .16)); ctx.fillRect(px + 1, py + 1, Math.max(2, s * .12), s - 2);
+        ctx.fillStyle = rgba(COL.ink, .3); ctx.fillRect(px + 1, py + s - Math.max(2, s * .14), s - 2, Math.max(2, s * .14) - 1);
+      }
       ctx.globalAlpha = 1;
     }
     function mini(name, cx, cy, size) {
@@ -284,6 +290,7 @@ ZAP.register({
         return false;
       },
       state: () => ({ cells: board.flat().filter(Boolean).length, board: board.map(r => r.map(c => (c ? 1 : 0))), lines, score, st, level, mode, clearing: !!clearing, cur: cur && { n: cur.n, m: cur.m.map(r => r.slice()), x: cur.x, y: cur.y } }),
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

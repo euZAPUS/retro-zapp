@@ -7,6 +7,7 @@ ZAP.register({
     { id: 'night', name: 'Noche', desc: 'Apagón: solo ves lo que ilumina tu linterna.' },
     { id: 'moon', name: 'Luna', desc: 'Poca gravedad: saltos largos y flotantes.' }
   ],
+  skins: [{ id: 'cyan', name: 'Cian', lvl: 0 }, { id: 'magenta', name: 'Rosa', lvl: 2 }, { id: 'gold', name: 'Dorado', lvl: 4 }, { id: 'ghost', name: 'Espectro', lvl: 6 }],
   hint: '<kbd>Espacio</kbd> o <kbd>↑</kbd> para saltar (mantén para llegar más alto) y <kbd>↓</kbd> para agacharte. Los drones bajos se saltan, los medios se esquivan agachado y los altos se cruzan por debajo. En el móvil, toca la pantalla o usa los botones.',
   ach: [
     { id: 'run500', name: 'Sin parar', desc: 'Llega a 500 puntos en Glitch Runner', icon: 'runner', test: (p, r) => !!r && r.game === 'runner' && r.value >= 500 },
@@ -21,7 +22,7 @@ ZAP.register({
       night: { base: 340, max: 720, G: 2300, jump: 790, acc: .9, night: true },
       moon: { base: 300, max: 640, G: 1250, jump: 620, acc: .8 }
     };
-    let M = MODES.normal;
+    let M = MODES.normal, skin = 'cyan';
     let SECT = [COL.cyan, COL.violet, COL.magenta, COL.lime];
     let tc = { key: '' };
     let st, t = 0, dist, score, speed, newBest;
@@ -131,7 +132,8 @@ ZAP.register({
     }
 
     function drawHacker(x, fy, dk, air) {
-      const C1 = COL.cyan, C2 = mix(COL.cyan, COL.ink, .55), VIS = COL.magenta;
+      const sk = skin === 'magenta' ? [COL.magenta, COL.cyan] : skin === 'gold' ? [COL.amber, COL.violet] : skin === 'ghost' ? [COL.text, COL.violet] : [COL.cyan, COL.magenta];
+      const C1 = sk[0], C2 = mix(C1, COL.ink, .55), VIS = sk[1];
       const bob = air ? 0 : Math.abs(Math.sin(phase)) * 1.5;
       if (!dk) {
         const l1 = air ? 4 : Math.max(0, Math.sin(phase)) * 6, l2 = air ? 4 : Math.max(0, -Math.sin(phase)) * 6;
@@ -318,6 +320,7 @@ ZAP.register({
         if (c === 'ArrowDown' || c === 'KeyS') { setDuck(down); return true; }
         return false;
       },
+      setSkin(id) { skin = id; K.redraw(); },
       init: reset
     };
   }

@@ -9,6 +9,7 @@ ZAP.register({
     { id: 'fast', name: 'Rápido', desc: 'Arranca veloz y no deja de acelerar.' },
     { id: 'feast', name: 'Festín', desc: 'Cinco paquetes a la vez. Aprovecha y crece rápido.' }
   ],
+  skins: [{ id: 'neon', name: 'Neón', lvl: 0 }, { id: 'rainbow', name: 'Arcoíris', lvl: 2 }, { id: 'gold', name: 'Dorada', lvl: 4 }, { id: 'candy', name: 'Caramelo', lvl: 6 }, { id: 'ghost', name: 'Fantasma', lvl: 8 }],
   hint: '<kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> o <kbd>WASD</kbd> para girar y <kbd>Espacio</kbd> para pausar. En el móvil, desliza el dedo sobre la pantalla. Los paquetes dorados duran poco y valen cinco puntos.',
   ach: [
     { id: 'worm30', name: 'Serpiente de oro', desc: '30 puntos en Worm', icon: 'worm', test: (p, r) => !!r && r.game === 'worm' && r.value >= 30 },
@@ -27,7 +28,7 @@ ZAP.register({
       fast: { base: .095, min: .045, acc: .0018, foods: 1 },
       feast: { base: .14, min: .06, acc: .0022, foods: 5 }
     };
-    let M = MODES.classic;
+    let M = MODES.classic, skin = 'neon';
     let body, prev, dir, queue, foods, walls, pending, score, st, acc, step, t = 0, deadT, newBest, eatFlash, sw = null, swiped = false, poisonT, apples;
 
     function isFree(x, y) {
@@ -193,13 +194,21 @@ ZAP.register({
       const a = (st === 'play' || st === 'paused') ? clamp(acc / step, 0, 1) : 1;
       const len = body.length;
       ctx.globalAlpha = st === 'dead' ? (deadT < .6 ? .5 + .5 * Math.sin(deadT * 40) : .4) : 1;
-      if (glow && len < 70) { ctx.shadowColor = rgba(COL.lime, .6); ctx.shadowBlur = 10; }
+      if (glow && len < 70) { ctx.shadowColor = skin === 'neon' ? rgba(COL.lime, .6) : 'rgba(255,255,255,.35)'; ctx.shadowBlur = 10; }
+      const bodyCol = (i) => {
+        const q = len > 1 ? i / (len - 1) : 0;
+        if (skin === 'rainbow') return 'hsl(' + Math.round((i * 18 + t * 80) % 360) + ',90%,' + Math.round(62 - q * 20) + '%)';
+        if (skin === 'gold') return mix(COL.amber, COL.ink, q * .55 + (i % 4 === 0 ? -.12 : 0));
+        if (skin === 'candy') return i % 2 ? COL.magenta : mix(COL.text, COL.magenta, .15);
+        if (skin === 'ghost') return mix(COL.text, COL.cyan, .25 + q * .5);
+        return mix(COL.lime, COL.ink, q * .6 + (i === 0 && eatFlash > 0 ? -eatFlash * .5 : 0));
+      };
       for (let i = len - 1; i >= 0; i--) {
         const p = prev[i] || body[i], b = body[i];
         const ax = Math.abs(b.x - p.x) > 1 ? 1 : a, ay = Math.abs(b.y - p.y) > 1 ? 1 : a;
         const x = (p.x + (b.x - p.x) * ax) * C, y = (p.y + (b.y - p.y) * ay) * C;
         const sz = Math.max(C - 9, C - 3 - i * .15), off = (C - sz) / 2;
-        ctx.fillStyle = mix(COL.lime, COL.ink, (len > 1 ? i / (len - 1) : 0) * .6 + (i === 0 && eatFlash > 0 ? -eatFlash * .5 : 0));
+        ctx.fillStyle = bodyCol(i);
         rr(x + off, y + off, sz, sz, 5); ctx.fill();
         ctx.fillStyle = rgba(COL.text, .24);
         ctx.beginPath(); ctx.arc(x + off + sz * .34, y + off + sz * .32, sz * .14, 0, TAU); ctx.fill();
@@ -261,6 +270,7 @@ ZAP.register({
         }
         return false;
       },
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

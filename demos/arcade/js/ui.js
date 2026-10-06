@@ -67,11 +67,12 @@ function openGame(id, mode) {
   $('.playbar').style.setProperty('--gc', 'var(--' + meta.color + ')');
   document.title = meta.name + ' · ZAP Arcade';
   $$('#dock button').forEach(b => b.setAttribute('aria-current', String(b.dataset.game === id)));
-  buildModes();
+  buildModes(); buildSkins2();
   $('#hint').innerHTML = meta.hint || '';
   const pb = $('#padbox'); pb.innerHTML = '';
   if (cur.inst.controls) cur.inst.controls(pb);
   cur.inst.enter(mode);
+  if (cur.inst.setSkin && meta.skins) cur.inst.setSkin(Z.skinFor(id));
   Z.sizeCanvas(cur.inst.W, cur.inst.H);
   screenEl.classList.remove('swap'); void screenEl.offsetWidth; screenEl.classList.add('swap');
   Z.profile.visit(id);
@@ -88,6 +89,27 @@ function buildModes() {
     box.append(b);
   });
 }
+/* estilos del juego (se desbloquean con el nivel) */
+function buildSkins2() {
+  const row = $('#skinrow'); row.innerHTML = '';
+  if (!cur || !cur.meta.skins) { row.hidden = true; return; }
+  row.hidden = false;
+  const active = Z.skinFor(cur.id), lvl = Z.profile.level().lvl;
+  row.append(h('span', { class: 'k' }, 'Estilo'));
+  cur.meta.skins.forEach(s => {
+    const locked = (s.lvl || 0) > lvl;
+    row.append(h('button', { type: 'button', class: 'mode sk' + (locked ? ' locked' : ''), 'aria-pressed': String(s.id === active), 'aria-disabled': locked ? 'true' : null, title: locked ? 'Se desbloquea en el nivel ' + s.lvl : s.name, 'data-skin': s.id,
+      onclick: e => { Z.setSkin(s.id); e.currentTarget.blur(); } }, s.name, locked ? h('small', null, ' Nv ' + s.lvl) : null));
+  });
+}
+Z.setSkin = id => {
+  if (!cur || !cur.meta.skins) return;
+  const s = cur.meta.skins.find(x => x.id === id); if (!s) return;
+  if ((s.lvl || 0) > Z.profile.level().lvl) { Z.sfx.nomatch(); Z.toast({ kind: 'lvl', title: 'Estilo bloqueado', text: s.name + ' se desbloquea en el nivel ' + s.lvl, icon: 'lock' }); return; }
+  store.set('skin:' + cur.id, id);
+  if (cur.inst.setSkin) cur.inst.setSkin(id);
+  buildSkins2(); Z.sfx.click(); Z.profile.unlock('skinner');
+};
 function updateModeDesc() {
   if (!cur) return;
   const m = cur.meta.modes.find(x => x.id === cur.mode), best = Z.profile.best();
@@ -390,7 +412,7 @@ function closeProfile() {
   if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch (e) { /* nada */ }
 }
 Z.on('profile', () => {
-  refreshHubSafe(); syncSettingsUI(); updateModeDesc();
+  refreshHubSafe(); syncSettingsUI(); updateModeDesc(); if (cur) buildSkins2();
   if (modalEl && tab !== 'editar') renderTab(tab);
 });
 function refreshHubSafe() { if (!hubEl.hidden) refreshHub(); else { const pb = $('#profBtn'); const P = Z.profile.data, L = Z.profile.level(); pb.innerHTML = ''; pb.append(avatar(32), h('span', null, h('b', null, P.name), h('small', null, 'Nv ' + L.lvl + ' · ' + Z.profile.title()))); } }

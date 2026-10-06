@@ -7,6 +7,7 @@ ZAP.register({
     { id: 'narrow', name: 'Rendija', desc: 'Huecos muy estrechos. Precisión milimétrica.' },
     { id: 'moving', name: 'Móviles', desc: 'Los firewalls suben y bajan mientras te acercas.' }
   ],
+  skins: [{ id: 'byte', name: 'Byte', lvl: 0 }, { id: 'phoenix', name: 'Fénix', lvl: 2 }, { id: 'ghost', name: 'Espectro', lvl: 4 }, { id: 'gold', name: 'Dorado', lvl: 6 }],
   hint: '<kbd>Espacio</kbd>, <kbd>↑</kbd>, clic o toca la pantalla para aletear. Pasa por el hueco de cada firewall. Medallas: bronce a 10, plata a 25, oro a 50.',
   ach: [
     { id: 'flap25', name: 'Piloto', desc: '25 firewalls en una partida de Floppy Byte', icon: 'flappy', test: (p, r) => !!r && r.game === 'flappy' && r.value >= 25 },
@@ -21,7 +22,7 @@ ZAP.register({
       narrow: { g: 1500, flap: 440, sp: 160, gap: 112 },
       moving: { g: 1500, flap: 440, sp: 150, gap: 156, move: true }
     };
-    let M = MODES.normal;
+    let M = MODES.normal, skin = 'byte';
     let st, t = 0, by, vy, pipes, score, deadT, newBest, groundOff, bgOff, wing, since;
     const stars = Array.from({ length: 36 }, () => ({ x: rand(0, W), y: rand(0, GY - 120), r: Math.random() < .2 ? 2 : 1, p: rand(0, TAU) }));
     function skyline(sp, hr, wr, al) {
@@ -101,15 +102,16 @@ ZAP.register({
     }
     function drawBird() {
       const rot = st === 'ready' ? 0 : clamp(vy / 520, -.5, 1.2);
-      ctx.save(); ctx.translate(BX, by); ctx.rotate(rot);
-      if (!cfg.low) { ctx.shadowColor = COL.cyan; ctx.shadowBlur = 14; }
-      ctx.fillStyle = COL.cyan; rr(-14, -11, 28, 22, 6); ctx.fill(); ctx.shadowBlur = 0;
-      ctx.fillStyle = mix(COL.cyan, COL.ink, .35); ctx.fillRect(-14, 4, 28, 7);
+      const bc = skin === 'phoenix' ? [COL.amber, COL.magenta] : skin === 'ghost' ? [COL.text, COL.violet] : skin === 'gold' ? [COL.amber, COL.text] : [COL.cyan, COL.magenta];
+      ctx.save(); ctx.translate(BX, by); ctx.rotate(rot); if (skin === 'ghost') ctx.globalAlpha = .78;
+      if (!cfg.low) { ctx.shadowColor = bc[0]; ctx.shadowBlur = skin === 'gold' ? 22 : 14; }
+      ctx.fillStyle = bc[0]; rr(-14, -11, 28, 22, 6); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.fillStyle = mix(bc[0], COL.ink, .35); ctx.fillRect(-14, 4, 28, 7);
       ctx.fillStyle = rgba(COL.text, .3); ctx.fillRect(-10, -9, 16, 3);
       ctx.fillStyle = COL.text; ctx.fillRect(3, -7, 8, 8); ctx.fillStyle = COL.ink; ctx.fillRect(7, -5, 4, 5);
-      ctx.fillStyle = COL.magenta; ctx.fillRect(12, 0, 8, 5); ctx.fillStyle = mix(COL.magenta, COL.ink, .4); ctx.fillRect(12, 4, 8, 2);
+      ctx.fillStyle = bc[1]; ctx.fillRect(12, 0, 8, 5); ctx.fillStyle = mix(bc[1], COL.ink, .4); ctx.fillRect(12, 4, 8, 2);
       const wy = Math.sin(t * 22) * 4 * (st === 'dead' ? 0 : 1) - wing * 3;
-      ctx.fillStyle = mix(COL.cyan, COL.text, .5); ctx.fillRect(-12, 1 + wy, 12, 6);
+      ctx.fillStyle = mix(bc[0], COL.text, .5); ctx.fillRect(-12, 1 + wy, 12, 6);
       ctx.restore();
     }
     function draw() {
@@ -149,6 +151,7 @@ ZAP.register({
         return false;
       },
       state: () => ({ by, vy, st, score, pipes: pipes.map(p => ({ x: p.x, gy: gapY(p), gap: p.gap })) }),
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

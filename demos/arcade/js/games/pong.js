@@ -8,6 +8,7 @@ ZAP.register({
     { id: 'normal', name: 'IA normal', desc: 'Primero a 5. Rival decente.' },
     { id: 'hard', name: 'IA experta', desc: 'Primero a 5. Casi no falla: usa los efectos de la pala.' }
   ],
+  skins: [{ id: 'neon', name: 'Neón', lvl: 0 }, { id: 'retro', name: 'Retro', lvl: 2 }, { id: 'plasma', name: 'Plasma', lvl: 4 }],
   hint: 'Mueve el ratón o el dedo arriba y abajo, o usa <kbd>W</kbd> <kbd>S</kbd> / <kbd>↑</kbd> <kbd>↓</kbd>. Golpea la bola con los bordes de la pala para darle más ángulo. <kbd>Espacio</kbd> o toca para sacar.',
   ach: [
     { id: 'pong20', name: 'Muro de frontón', desc: '20 golpes seguidos en Frontón', icon: 'pong', test: (p, r) => !!r && r.game === 'pong' && r.mode === 'rally' && r.value >= 20 },
@@ -18,6 +19,7 @@ ZAP.register({
     const W = 600, H = 380, PW = 12, PHT = 72, BR = 7, PXL = 26, PXR = W - 26 - PW, WALL = W - 10;
     const AI = { easy: { sp: 210, err: 56, react: .35 }, normal: { sp: 310, err: 26, react: .2 }, hard: { sp: 440, err: 8, react: .08 } };
     const streaks = {};
+    let skin = 'neon';
     let mode = 'normal', rally = false, st, t = 0, ball, you, foe, py, pty, pv, ay, ayT, serveT, serveDir, hits, deadT, newBest, endWin, keys = { u: false, d: false }, errOff = 0, flashL = 0, flashR = 0, thinkT = 0;
 
     function hudFor() { hud.init(rally ? ['Golpes', 'Récord'] : ['Tú', 'IA', 'Racha', 'Récord']); }
@@ -128,16 +130,20 @@ ZAP.register({
         txt(String(hits), W / 2, 46, { font: FD, size: 44, color: COL.amber, alpha: .4 });
       }
       const pad = (x, y, col, fl) => {
-        ctx.save(); if (!cfg.low) { ctx.shadowColor = col; ctx.shadowBlur = 10 + fl * 16; }
-        ctx.fillStyle = fl > 0 ? mix(col, COL.text, fl * .6) : col; rr(x, y - PHT / 2, PW, PHT, 5); ctx.fill(); ctx.restore();
+        ctx.save();
+        if (skin === 'retro') { ctx.fillStyle = fl > 0 ? COL.amber : COL.text; ctx.fillRect(x, y - PHT / 2, PW, PHT); ctx.restore(); return; }
+        if (!cfg.low) { ctx.shadowColor = col; ctx.shadowBlur = 10 + fl * 16; }
+        if (skin === 'plasma') { const g = ctx.createLinearGradient(0, y - PHT / 2, 0, y + PHT / 2); g.addColorStop(0, col); g.addColorStop(1, COL.violet); ctx.fillStyle = g; }
+        else ctx.fillStyle = fl > 0 ? mix(col, COL.text, fl * .6) : col;
+        rr(x, y - PHT / 2, PW, PHT, 5); ctx.fill(); ctx.restore();
       };
       pad(PXL, py, COL.cyan, flashL);
       if (!rally) pad(PXR, ay, COL.magenta, flashR);
-      for (let i = 0; i < ball.trail.length; i++) { const q = ball.trail[i]; ctx.globalAlpha = i / ball.trail.length * .35; ctx.fillStyle = COL.amber; ctx.beginPath(); ctx.arc(q.x, q.y, BR * (.4 + i / ball.trail.length * .6), 0, TAU); ctx.fill(); }
+      for (let i = 0; i < ball.trail.length; i++) { const q = ball.trail[i]; ctx.globalAlpha = i / ball.trail.length * .35; ctx.fillStyle = skin === 'plasma' ? COL.violet : COL.amber; ctx.beginPath(); ctx.arc(q.x, q.y, BR * (.4 + i / ball.trail.length * .6), 0, TAU); ctx.fill(); }
       ctx.globalAlpha = 1;
       if (st === 'play' || st === 'dead' || st === 'serve') {
         if (!cfg.low) { ctx.shadowColor = COL.amber; ctx.shadowBlur = 14; }
-        ctx.fillStyle = COL.text; ctx.beginPath(); ctx.arc(ball.x, ball.y, BR, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+        ctx.fillStyle = COL.text; if (skin === 'retro') ctx.fillRect(ball.x - BR, ball.y - BR, BR * 2, BR * 2); else { ctx.beginPath(); ctx.arc(ball.x, ball.y, BR, 0, TAU); ctx.fill(); } ctx.shadowBlur = 0;
       }
       if (st === 'ready') {
         txt('NEON PONG', W / 2, H / 2 - 36, { font: FD, size: 36, color: COL.cyan });
@@ -177,6 +183,7 @@ ZAP.register({
         return false;
       },
       state: () => ({ ball: { x: ball.x, y: ball.y, vx: ball.vx }, py, ay, you, foe, hits, st }),
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

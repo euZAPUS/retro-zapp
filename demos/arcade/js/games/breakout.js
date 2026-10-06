@@ -6,6 +6,7 @@ ZAP.register({
     { id: 'multi', name: 'Multibola', desc: 'Empiezas con dos bolas y llueven potenciadores.' },
     { id: 'hardcore', name: 'Hardcore', desc: 'Una sola vida y bola mucho más rápida.' }
   ],
+  skins: [{ id: 'classic', name: 'Clásica', lvl: 0 }, { id: 'fire', name: 'Fuego', lvl: 2 }, { id: 'ice', name: 'Hielo', lvl: 4 }, { id: 'rainbow', name: 'Arcoíris', lvl: 6 }],
   hint: 'Mueve el ratón o el dedo (también <kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd>) para mover la pala. <kbd>Espacio</kbd> o toca para lanzar. Cápsulas: <b>W</b> pala ancha, <b>M</b> multibola, <b>S</b> cámara lenta, <b>♥</b> vida extra. Encadena ladrillos sin tocar la pala para subir el combo.',
   ach: [
     { id: 'brk3', name: 'Demoledor', desc: 'Llega al nivel 3 en Brick Breaker', icon: 'breakout', test: (p, r) => !!r && r.game === 'breakout' && r.extra && r.extra.level >= 3 },
@@ -15,11 +16,11 @@ ZAP.register({
     const { ctx, COL, TAU, clamp, rand, randInt, mix, rgba, txt, banner, rr, burst, sfx, hud, pad5, addShake, announce, FD, cfg } = K;
     const W = 420, H = 540, PY = H - 44, PH = 12, BR = 6, COLS = 10, BW = 40, BH = 17, TOP = 58;
     const MODES = {
-      classic: { lives: 3, balls: 1, speed: 310, drop: .13 },
-      multi: { lives: 3, balls: 2, speed: 310, drop: .24 },
-      hardcore: { lives: 1, balls: 1, speed: 390, drop: .08 }
+      classic: { lives: 3, balls: 1, speed: 360, drop: .13 },
+      multi: { lives: 3, balls: 2, speed: 360, drop: .24 },
+      hardcore: { lives: 1, balls: 1, speed: 440, drop: .08 }
     };
-    let M = MODES.classic;
+    let M = MODES.classic, skin = 'classic';
     let st, t = 0, balls, bricks, caps, paddle, lives, level, score, combo, wideT, slowT, alive, clearT, deadT, newBest, keys = { l: false, r: false };
     const stars = Array.from({ length: 36 }, () => ({ x: rand(0, W), y: rand(0, H), s: rand(.3, 1), p: rand(0, TAU) }));
     const rowCol = () => [COL.magenta, COL.amber, COL.lime, COL.cyan, COL.violet, mix(COL.magenta, COL.amber, .5), mix(COL.lime, COL.cyan, .5), mix(COL.violet, COL.magenta, .5)];
@@ -169,6 +170,7 @@ ZAP.register({
       ctx.fillStyle = rgba(COL.ink, .35); ctx.fillRect(b.x, b.y + b.h - 2, b.w, 2);
       if (b.max > 1) { ctx.strokeStyle = rgba(COL.text, .55); ctx.lineWidth = 1; ctx.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1); for (let i = 0; i < b.hp; i++) { ctx.fillStyle = COL.text; ctx.fillRect(b.x + 5 + i * 6, b.y + b.h - 7, 4, 3); } }
     }
+    const trailCol = i => skin === 'fire' ? (i % 2 ? COL.amber : COL.magenta) : skin === 'ice' ? (i % 2 ? COL.cyan : COL.text) : skin === 'rainbow' ? 'hsl(' + Math.round((t * 220 + i * 36) % 360) + ',90%,60%)' : COL.amber;
     function draw() {
       ctx.fillStyle = COL.ink; ctx.fillRect(-20, -20, W + 40, H + 40);
       for (const s of stars) { ctx.globalAlpha = .12 + .2 * Math.sin(t * s.s * 2 + s.p); ctx.fillStyle = COL.text; ctx.fillRect(s.x, (s.y + t * 6 * s.s) % H, 2, 2); }
@@ -192,9 +194,9 @@ ZAP.register({
       ctx.fillStyle = rgba(COL.text, .35); rr(-paddle.w / 2 + 4, -PH / 2 + 2, paddle.w - 8, 3, 2); ctx.fill();
       ctx.restore();
       for (const b of balls) {
-        for (let i = 0; i < b.trail.length; i++) { const q = b.trail[i]; ctx.globalAlpha = i / b.trail.length * .35; ctx.fillStyle = COL.amber; ctx.beginPath(); ctx.arc(q.x, q.y, BR * (.4 + i / b.trail.length * .6), 0, TAU); ctx.fill(); }
+        for (let i = 0; i < b.trail.length; i++) { const q = b.trail[i]; ctx.globalAlpha = i / b.trail.length * .35; ctx.fillStyle = trailCol(i); ctx.beginPath(); ctx.arc(q.x, q.y, BR * (.4 + i / b.trail.length * .6), 0, TAU); ctx.fill(); }
         ctx.globalAlpha = 1;
-        if (!cfg.low) { ctx.shadowColor = COL.amber; ctx.shadowBlur = 14; }
+        if (!cfg.low) { ctx.shadowColor = trailCol(0); ctx.shadowBlur = 14; }
         ctx.fillStyle = COL.text; ctx.beginPath(); ctx.arc(b.x, b.y, BR, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
       }
       if (combo >= 3) txt('COMBO x' + combo, W / 2, H - 14, { font: FD, size: 12, color: COL.amber, alpha: .8 });
@@ -232,6 +234,7 @@ ZAP.register({
         return false;
       },
       state: () => ({ balls: balls.map(b => ({ x: b.x, y: b.y, stuck: b.stuck })), alive, score, lives, level, st, px: paddle.x }),
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

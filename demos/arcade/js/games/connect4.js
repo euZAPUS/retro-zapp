@@ -8,6 +8,7 @@ ZAP.register({
     { id: 'hard', name: 'IA experta', desc: 'Busca seis jugadas hacia delante. Mucha suerte.' },
     { id: 'duo', name: 'Dos jugadores', desc: 'Pasa el ratón o el móvil a un amigo. No cuenta para el perfil.' }
   ],
+  skins: [{ id: 'classic', name: 'Clásico', lvl: 0 }, { id: 'coin', name: 'Monedas', lvl: 2 }, { id: 'star', name: 'Estrellas', lvl: 4 }, { id: 'gem', name: 'Gemas', lvl: 6 }],
   hint: 'Haz clic o toca una columna para soltar tu ficha (o usa <kbd>←</kbd> <kbd>→</kbd> y <kbd>Espacio</kbd> / <kbd>Enter</kbd>, o los números <kbd>1</kbd>–<kbd>7</kbd>). Gana quien junte cuatro en línea. La racha se acumula con cada victoria seguida.',
   ach: [
     { id: 'c4hard', name: 'Gran maestro', desc: 'Vence a la IA experta', icon: 'connect4', test: (p, r) => !!r && r.game === 'connect4' && r.mode === 'hard' && r.value >= 1 },
@@ -18,6 +19,7 @@ ZAP.register({
     const CELL = 64, COLS = 7, ROWS = 6, PAD = 16, TOP = 70, W = COLS * CELL + PAD * 2, H = TOP + ROWS * CELL + PAD;
     const DEPTH = { easy: 1, normal: 4, hard: 6 };
     const streaks = {};
+    let skin = 'classic';
     let mode = 'normal', duo = false, board, turn, st, t = 0, hover = 3, drops, winLine, deadT, result, thinking, newBest, mvCount;
 
     const pc = who => (who === 1 ? COL.cyan : COL.magenta);
@@ -130,10 +132,15 @@ ZAP.register({
 
     function disc(x, y, who, a, glow) {
       ctx.save(); ctx.translate(x, y); ctx.globalAlpha = a == null ? 1 : a;
-      const col = pc(who);
+      const col = pc(who), R = CELL / 2 - 8;
       if (glow && !cfg.low) { ctx.shadowColor = col; ctx.shadowBlur = 18; }
-      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, CELL / 2 - 8, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
-      ctx.fillStyle = rgba(COL.ink, .25); ctx.beginPath(); ctx.arc(0, 0, CELL / 2 - 17, 0, TAU); ctx.stroke(); ctx.fill();
+      ctx.fillStyle = col; ctx.beginPath();
+      if (skin === 'gem') { ctx.moveTo(0, -R - 3); ctx.lineTo(R + 2, 0); ctx.lineTo(0, R + 3); ctx.lineTo(-R - 2, 0); ctx.closePath(); } else ctx.arc(0, 0, R, 0, TAU);
+      ctx.fill(); ctx.shadowBlur = 0;
+      if (skin === 'coin') { ctx.strokeStyle = rgba(COL.ink, .35); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R - 6, 0, TAU); ctx.stroke(); txt('$', 0, 2, { font: FD, size: 18, color: rgba(COL.ink, .5) }); }
+      else if (skin === 'star') { ctx.fillStyle = rgba(COL.ink, .32); ctx.beginPath(); for (let i = 0; i < 10; i++) { const an = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6 : 15; ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.closePath(); ctx.fill(); }
+      else if (skin === 'gem') { ctx.strokeStyle = rgba(COL.ink, .35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-R - 2, 0); ctx.lineTo(R + 2, 0); ctx.moveTo(0, -R - 3); ctx.lineTo(-10, 0); ctx.lineTo(0, R + 3); ctx.moveTo(0, -R - 3); ctx.lineTo(10, 0); ctx.lineTo(0, R + 3); ctx.stroke(); }
+      else { ctx.fillStyle = rgba(COL.ink, .25); ctx.beginPath(); ctx.arc(0, 0, R - 9, 0, TAU); ctx.fill(); }
       ctx.fillStyle = rgba(COL.text, .3); ctx.beginPath(); ctx.arc(-8, -9, 7, 0, TAU); ctx.fill();
       ctx.restore();
     }
@@ -201,6 +208,7 @@ ZAP.register({
         return false;
       },
       state: () => ({ board: board.map(r => r.slice()), turn, st, result, mode }),
+      setSkin(id) { skin = id; K.redraw(); },
       init() { reset(); }
     };
   }

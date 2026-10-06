@@ -423,6 +423,14 @@ Z.modeFor = gid => {
   return m.modes.some(x => x.id === saved) ? saved : m.modes[0].id;
 };
 
+/* estilos visuales por juego (el primero es el de serie; el resto se desbloquea con el nivel) */
+Z.skinFor = gid => {
+  const m = Z.games[gid]; if (!m || !m.skins) return null;
+  const saved = store.get('skin:' + gid, null), lvl = Z.profile.level().lvl;
+  const s = m.skins.find(x => x.id === saved && (x.lvl || 0) <= lvl);
+  return (s || m.skins[0]).id;
+};
+
 let cur = null;
 Z.setCurrent = c => { cur = c; forceDraw = true; };
 Z.cur = () => cur;
@@ -489,7 +497,8 @@ const GEN = [
   { id: 'streak3', name: 'Constante', desc: 'Juega 3 días seguidos', icon: 'heart', test: () => streak() >= 3, prog: () => [Math.min(3, streak()), 3] },
   { id: 'stylist', name: 'Estilista', desc: 'Cambia de tema', icon: 'star', manual: true },
   { id: 'custom', name: 'A tu manera', desc: 'Elige un color de acento propio', icon: 'ghost', manual: true },
-  { id: 'avatar', name: 'Nueva identidad', desc: 'Cambia tu avatar', icon: 'skull', manual: true }
+  { id: 'avatar', name: 'Nueva identidad', desc: 'Cambia tu avatar', icon: 'skull', manual: true },
+  { id: 'skinner', name: 'Con estilo', desc: 'Cambia el estilo de un juego', icon: 'crown', manual: true }
 ];
 Z.achs.unshift(...GEN);
 
