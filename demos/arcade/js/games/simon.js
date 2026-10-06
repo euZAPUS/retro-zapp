@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Simon Zap · repite la secuencia de luces y sonidos */
 ZAP.register({
   id: 'simon', name: 'Simon Zap', tag: 'repite la secuencia de luces', genre: 'Reflejos', color: 'magenta', icon: 'simon',

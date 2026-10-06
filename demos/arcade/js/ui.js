@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* ZAP Arcade · interfaz: hub de juegos, navegación, ajustes y perfil */
 (() => {
 'use strict';

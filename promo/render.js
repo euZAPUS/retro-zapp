@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Renderiza el anuncio frame a frame (1920x1080, 30 fps) llamando a window.seek(t) de promo.html.
    Uso: OUT=/ruta node render.js            -> todos los frames en $OUT/render
         OUT=/ruta node render.js 5.0 12.5   -> solo esos instantes en $OUT/debug (para revisar) */

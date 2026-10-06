@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* ZAP Arcade · proceso principal de Electron: ventana, menú y actualizaciones automáticas desde GitHub Releases. */
 const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
 const path = require('path');

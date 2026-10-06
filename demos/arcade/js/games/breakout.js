@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Brick Breaker · rompeladrillos con potenciadores, combos y niveles */
 ZAP.register({
   id: 'breakout', name: 'Brick Breaker', tag: 'rompe los ladrillos con una bola', genre: 'Reflejos', color: 'amber', icon: 'breakout',

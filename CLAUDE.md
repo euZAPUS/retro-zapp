@@ -36,3 +36,7 @@ Portfolio web estático de demos interactivas. Sin build ni dependencias: HTML/C
 - Las versiones las numera el workflow (`1.0.<nº de ejecución>`); no hace falta tocar `version` en `desktop/package.json`.
 - Cualquier cambio en `demos/arcade/` o `desktop/` que llegue a `main` publica una versión nueva automáticamente.
 - macOS sin firmar no puede autoactualizarse; Windows y Linux (AppImage) sí.
+
+## Licencia
+- Todo el código es © 2026 euZAPUS, todos los derechos reservados (`LICENSE`). Mantén la cabecera `/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */` en los archivos JS/CSS nuevos.
+- Si añades una dependencia o recurso de terceros, anótalo con su licencia en `THIRD_PARTY_NOTICES.md`.

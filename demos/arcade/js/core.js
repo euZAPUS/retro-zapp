@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* ZAP Arcade · núcleo compartido
    Utilidades, ajustes, audio, lienzo y partículas, marcador, iconos pixel, perfil (récords, XP, logros), avisos y confeti. */
 (() => {

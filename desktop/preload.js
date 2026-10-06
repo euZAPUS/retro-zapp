@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Puente seguro entre la web del arcade y el proceso principal (solo expone lo necesario para actualizar). */
 const { contextBridge, ipcRenderer } = require('electron');
 

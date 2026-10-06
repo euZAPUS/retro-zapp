@@ -1,0 +1,50 @@
+Copyright (c) 2026 euZAPUS. Todos los derechos reservados.
+All rights reserved.
+
+Este software y los materiales asociados (el "Software") son propiedad de
+euZAPUS: ZAP Arcade (juegos, interfaz, iconos pixel, música y vídeos), la
+aplicación de escritorio, la web del portfolio y todo el código fuente de este
+repositorio.
+
+PERMISOS (limitados)
+
+1. Puedes ver el código fuente en este repositorio público y, conforme a las
+   condiciones de uso de GitHub, hacer un fork dentro de GitHub con fines de
+   consulta y de propuesta de cambios.
+2. Puedes ejecutar y jugar a ZAP Arcade (en la web o con la aplicación de
+   escritorio) para uso personal y no comercial.
+
+NO ESTÁ PERMITIDO, sin autorización previa y por escrito de euZAPUS:
+
+a) copiar, reproducir o redistribuir el Software, o partes sustanciales de él
+   (incluidos sus iconos, sonidos, música, vídeos y textos);
+b) modificarlo o crear obras derivadas a partir de él;
+c) venderlo, alquilarlo, sublicenciarlo o usarlo con fines comerciales;
+d) publicarlo, alojarlo o presentarlo como propio;
+e) eliminar o alterar los avisos de copyright;
+f) usar el nombre "ZAP Arcade", su logotipo o su aspecto distintivo para
+   identificar otros productos o servicios.
+
+COMPONENTES DE TERCEROS
+
+El Software utiliza componentes de terceros con sus propias licencias (ver
+THIRD_PARTY_NOTICES.md). Esta licencia no se aplica a ellos y no restringe los
+derechos que sus licencias te conceden.
+
+SIN GARANTÍA
+
+EL SOFTWARE SE ENTREGA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O
+IMPLÍCITA, INCLUIDAS LAS DE COMERCIABILIDAD, IDONEIDAD PARA UN FIN CONCRETO Y
+NO INFRACCIÓN. EN NINGÚN CASO EL TITULAR SERÁ RESPONSABLE DE RECLAMACIONES,
+DAÑOS U OTRAS RESPONSABILIDADES DERIVADAS DEL USO DEL SOFTWARE.
+
+CONTACTO
+
+Para solicitar permisos adicionales: https://github.com/euZAPUS
+
+--------------------------------------------------------------------------
+Summary (English): Copyright (c) 2026 euZAPUS. All rights reserved. You may view
+the source in this public repository and play the app for personal,
+non-commercial use. Copying, modifying, redistributing, selling or reusing the
+code or assets without written permission is not allowed. Third-party
+components keep their own licenses (see THIRD_PARTY_NOTICES.md).

@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Cuatro en Línea · contra una IA con minimax (3 niveles) o contra un amigo */
 ZAP.register({
   id: 'connect4', name: 'Cuatro en Línea', tag: 'alinea cuatro fichas antes que la IA', genre: 'Versus', color: 'violet', icon: 'connect4',

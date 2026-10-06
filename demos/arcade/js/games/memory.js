@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Memory Match · parejas con giro 3D, y un modo donde las cartas se barajan */
 ZAP.register({
   id: 'memory', name: 'Memory Match', tag: 'encuentra todas las parejas', genre: 'Puzzle', color: 'lime', icon: 'memory',

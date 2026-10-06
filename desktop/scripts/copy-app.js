@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Copia el arcade web (../demos/arcade) a ./app para empaquetarlo dentro de la app de escritorio. */
 const fs = require('fs');
 const path = require('path');

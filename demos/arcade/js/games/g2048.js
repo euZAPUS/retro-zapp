@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Zap 2048 · fusiona fichas con animaciones deslizantes, en tableros de 3×3 a 5×5 */
 ZAP.register({
   id: '2048', name: 'Zap 2048', tag: 'une fichas iguales hasta llegar a 2048', genre: 'Puzzle', color: 'amber', icon: 'g2048',

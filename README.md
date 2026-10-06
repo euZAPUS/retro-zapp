@@ -15,3 +15,7 @@ Publicable tal cual con GitHub Pages (Settings → Pages → rama `main`, carpet
 
 Cada cambio que se une a `main` publica una versión nueva sola (workflow `Publicar app de escritorio`). También se puede lanzar a mano desde la pestaña *Actions*.
 Para desarrollar: `cd desktop && npm install && npm start`.
+
+## Licencia
+
+© 2026 euZAPUS. **Todos los derechos reservados.** Puedes ver el código y jugar para uso personal; copiarlo, modificarlo, redistribuirlo o usarlo comercialmente requiere permiso por escrito. Ver [`LICENSE`](LICENSE). Los componentes de terceros y sus licencias están en [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

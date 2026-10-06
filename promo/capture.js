@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Captura de material para el anuncio de ZAP Arcade.
    Usa el reloj virtual de Playwright (page.clock) para sacar frames deterministas a 30 fps del arcade real,
    con bots que juegan. Uso: OUT=/ruta node capture.js [clip1 clip2 ...]
