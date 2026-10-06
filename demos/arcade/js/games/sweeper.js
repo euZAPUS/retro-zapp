@@ -260,6 +260,7 @@ ZAP.register({
         if (n >= 0) { K.setMode(IDS[n]); return true; }
         return false;
       },
+      state: () => ({ st, c, r, m, opened, flags, timer }),
       init() { newGame(); }
     };
   }

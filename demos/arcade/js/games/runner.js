@@ -321,6 +321,7 @@ ZAP.register({
         return false;
       },
       setSkin(id) { skin = id; K.redraw(); },
+      state: () => ({ st, score, py, speed, obs: obs.map(o => ({ k: o.k, x: o.x, y: o.y, w: o.w, h: o.h })) }),
       init: reset
     };
   }

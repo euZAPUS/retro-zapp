@@ -271,6 +271,7 @@ ZAP.register({
         return false;
       },
       setSkin(id) { skin = id; K.redraw(); },
+      state: () => ({ st, score, wrap: !!M.wrap, dir: { ...dir }, body: body.map(s => ({ x: s.x, y: s.y })), foods: foods.map(f => ({ x: f.x, y: f.y, kind: f.kind })), walls: Array.from(walls) }),
       init() { reset(); }
     };
   }
