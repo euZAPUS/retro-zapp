@@ -5,6 +5,10 @@ Portfolio web estático de demos interactivas. Sin build ni dependencias: HTML/C
 ## Estructura
 - `index.html`: home con una tarjeta por demo (cristal, inclinación 3D, brillo bajo el cursor).
 - `demos/<nombre>/`: cada demo es una carpeta con su `index.html`.
+- `desktop/`: app de escritorio (Electron) que empaqueta `demos/arcade/` y se actualiza sola desde GitHub Releases.
+  - `main.js` (ventana y actualizador), `preload.js` (puente `window.zapDesktop`), `scripts/copy-app.js` (copia el arcade a `desktop/app/`), `build/icon.png`.
+  - `.github/workflows/desktop-release.yml`: al llegar cambios a `main` crea la versión `1.0.N` y publica instaladores de Windows, macOS y Linux.
+  - `demos/arcade/js/desktop.js` añade el botón «Actualizar» en Ajustes (solo existe dentro de la app).
 - `demos/arcade/`: ZAP Arcade, una app de 13 minijuegos (se abre con `#juego` o `#juego/modo`, p. ej. `#worm/portal`).
   - `index.html`: esqueleto (cabecera, vistas hub y juego, avisos).
   - `css/arcade.css`: tokens de tema, cristal, fondos, marcos de pantalla, hub, perfil, avisos.
@@ -26,3 +30,9 @@ Portfolio web estático de demos interactivas. Sin build ni dependencias: HTML/C
 - Respetar `prefers-reduced-motion`, el modo bajo consumo y que el diseño sea usable en móvil (sin scroll horizontal).
 - Cada juego expone `state()` de solo lectura para poder probarlo con bots.
 - Probar en local con `python3 -m http.server` desde la raíz.
+
+## App de escritorio
+- Probar sin instalar: `cd desktop && npm install && npm start`.
+- Las versiones las numera el workflow (`1.0.<nº de ejecución>`); no hace falta tocar `version` en `desktop/package.json`.
+- Cualquier cambio en `demos/arcade/` o `desktop/` que llegue a `main` publica una versión nueva automáticamente.
+- macOS sin firmar no puede autoactualizarse; Windows y Linux (AppImage) sí.

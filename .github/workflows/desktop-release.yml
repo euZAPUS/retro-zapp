@@ -1,0 +1,62 @@
+name: Publicar app de escritorio
+
+# Cada cambio que llega a main (juegos, arreglos...) genera una versión nueva del instalador
+# y la publica en GitHub Releases; la app instalada la detecta y se actualiza desde su botón.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'demos/arcade/**'
+      - 'desktop/**'
+      - '.github/workflows/desktop-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        run: echo "version=1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+      - name: Crear la versión
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "ZAP Arcade ${{ steps.v.outputs.version }}" \
+            --notes "$(git log -1 --pretty=%B)"
+
+  build:
+    needs: release
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - run: npm run prepare-app
+      - name: Empaquetar y publicar
+        run: npx electron-builder --publish always -c.extraMetadata.version=${{ needs.release.outputs.version }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

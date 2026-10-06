@@ -1,0 +1,35 @@
+{
+  "name": "zap-arcade-desktop",
+  "productName": "ZAP Arcade",
+  "version": "1.0.0",
+  "description": "ZAP Arcade: 13 minijuegos con perfil, récords y actualizaciones automáticas",
+  "author": "euZAPUS",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "prepare-app": "node scripts/copy-app.js",
+    "start": "npm run prepare-app && electron .",
+    "pack": "npm run prepare-app && electron-builder --dir",
+    "dist": "npm run prepare-app && electron-builder"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.euzapus.zaparcade",
+    "productName": "ZAP Arcade",
+    "copyright": "euZAPUS",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "preload.js", "app/**/*"],
+    "publish": [{ "provider": "github", "owner": "euZAPUS", "repo": "retro-zapp", "releaseType": "release" }],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }], "icon": "build/icon.png" },
+    "nsis": { "oneClick": true, "perMachine": false, "runAfterFinish": true, "deleteAppDataOnUninstall": false, "shortcutName": "ZAP Arcade" },
+    "mac": { "target": ["dmg", "zip"], "category": "public.app-category.games", "identity": null, "icon": "build/icon.png" },
+    "linux": { "target": ["AppImage"], "category": "Game", "icon": "build/icon.png" }
+  }
+}

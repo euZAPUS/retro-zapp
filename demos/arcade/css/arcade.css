@@ -360,3 +360,9 @@ footer{color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:8px 18p
   .toasts{left:12px;right:12px;bottom:12px;justify-items:stretch}
   .toast{max-width:none}
 }
+
+/* app de escritorio: actualizaciones */
+.updmsg{font-size:12px;color:var(--text)}
+.updbar{height:6px;border-radius:99px;background:color-mix(in srgb,var(--text) 14%,transparent);overflow:hidden}
+.updbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--lime));transition:width .3s}
+#cfgBtn[data-update]::after{content:"";display:inline-block;width:8px;height:8px;margin-left:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 1.6s ease-in-out infinite}
