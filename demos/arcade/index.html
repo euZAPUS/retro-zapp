@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ZAP Arcade</title>
+<meta name="description" content="13 minijuegos hechos a mano con HTML, Canvas y JavaScript puro: modos de juego, perfil con récords, logros, temas y animaciones.">
+<meta name="theme-color" content="#0b0d18">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/arcade.css">
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+  <div class="orbs"><i></i><i></i><i></i></div>
+  <div class="rgrid"></div>
+  <div class="stars"><i></i><i></i><i></i></div>
+</div>
+
+<div class="wrap">
+  <header>
+    <button class="brand" id="home" type="button" aria-label="Volver al menú de juegos">
+      <h1><span>ZAP</span> ARCADE</h1>
+      <p id="tagline">Juegos hechos a mano con HTML, Canvas y JavaScript puro.</p>
+    </button>
+    <div class="row">
+      <button class="profbtn glass" id="profBtn" type="button" aria-haspopup="dialog" aria-label="Abrir mi perfil"></button>
+      <button class="btn" id="cfgBtn" type="button" aria-expanded="false" aria-controls="settings">Ajustes</button>
+      <button class="btn" id="snd" type="button" aria-pressed="true">Sonido: sí</button>
+    </div>
+    <div class="panel glass" id="settings" role="dialog" aria-label="Ajustes" hidden></div>
+  </header>
+
+  <main id="hub" class="view" aria-label="Menú de juegos"></main>
+
+  <main id="play" class="view" aria-label="Juego" hidden>
+    <div class="playbar">
+      <button class="btn sm" id="back" type="button">← Juegos</button>
+      <h2 id="gtitle"></h2>
+      <nav class="dock" id="dock" aria-label="Cambiar de juego"></nav>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Modo de juego"></div>
+    <p class="modedesc" id="modedesc"></p>
+    <div class="modes skinrow" id="skinrow" role="group" aria-label="Estilo del juego" hidden></div>
+    <section class="stage glass" aria-label="Pantalla de juego">
+      <div class="hud" id="hud"></div>
+      <div class="screen" id="screen">
+        <canvas id="cv" width="720" height="280" tabindex="0" aria-label="Pantalla del juego"></canvas>
+      </div>
+      <div class="controls">
+        <p class="hint" id="hint"></p>
+        <div id="padbox"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Los récords, logros y ajustes se guardan en este navegador.</span>
+    <a href="../../" style="color:inherit">← Volver al portfolio</a>
+  </footer>
+  <div class="sr" id="status" role="status" aria-live="polite"></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script src="js/core.js"></script>
+<script src="js/games/runner.js"></script>
+<script src="js/games/sweeper.js"></script>
+<script src="js/games/worm.js"></script>
+<script src="js/games/breakout.js"></script>
+<script src="js/games/pong.js"></script>
+<script src="js/games/tetris.js"></script>
+<script src="js/games/g2048.js"></script>
+<script src="js/games/flappy.js"></script>
+<script src="js/games/memory.js"></script>
+<script src="js/games/simon.js"></script>
+<script src="js/games/invaders.js"></script>
+<script src="js/games/whack.js"></script>
+<script src="js/games/connect4.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/desktop.js"></script>
+</body>
+</html>
