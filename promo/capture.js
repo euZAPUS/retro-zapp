@@ -150,6 +150,8 @@ async function runClip(browser, def) {
   await page.clock.runFor(800);
   await page.addStyleTag({ content: NO_ANIM });
   await page.clock.runFor(300);
+  /* sin pausar, el tiempo corre solo además de runFor y los juegos van ~4x más rápido */
+  await page.clock.pauseAt(new Date(Date.now() + 2000));
   const ready = await page.evaluate('window.ZAP_READY === true'); if (!ready) throw new Error('arcade no listo: ' + def.name);
   const rect = await page.evaluate(() => { const r = e => { const b = document.querySelector(e).getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height }; };
     return { play: r('#play'), screen: r('.screen'), hud: r('#hud') }; });
@@ -206,6 +208,7 @@ async function runDesktop(browser) {
   const { ctx, page } = await boot(browser, def, stub);
   await page.clock.install({ time: Date.now() });
   await page.goto(URL); await page.clock.runFor(900); await page.addStyleTag({ content: NO_ANIM }); await page.clock.runFor(300);
+  await page.clock.pauseAt(new Date(Date.now() + 2000));
   await page.evaluate("document.getElementById('cfgBtn').click()"); await page.clock.runFor(300);
   const btn = await page.evaluate(() => { const b = document.querySelector('.updmsg').parentElement.querySelector('button').getBoundingClientRect(); const c = document.getElementById('cfgBtn').getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, cfg: { x: c.x + c.width / 2, y: c.y + c.height / 2 } }; });
   const clip = { x: 0, y: 0, width: 1280, height: 860 };
