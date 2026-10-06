@@ -440,7 +440,7 @@ Z.cur = () => cur;
    Perfil: récords, XP, nivel, logros, racha
    ===================================================================== */
 const PKEY = 'profile';
-const defProfile = () => ({ v: 1, name: 'Jugador', avatar: { ico: 'runner', col: 'cyan' }, created: Date.now(), xp: 0, time: 0, plays: 0, records: 0, visits: {}, games: {}, ach: {}, days: [] });
+const defProfile = () => ({ v: 1, name: 'Jugador', avatar: { ico: 'runner', col: 'cyan' }, created: Date.now(), edited: 0, xp: 0, time: 0, plays: 0, records: 0, visits: {}, games: {}, ach: {}, days: [] });
 function migrateOld(P) {
   const bw = store.get('best-worm', 0), br = store.get('best-runner', 0), sw = store.get('sw-best', {});
   const put = (g, m, v) => {
@@ -592,9 +592,13 @@ Z.profile = {
   set(o) {
     if (o.name != null) P.name = String(o.name).trim().slice(0, 16) || 'Jugador';
     if (o.avatar) P.avatar = Object.assign({}, P.avatar, o.avatar);
+    P.edited = Date.now();
     save(); Z.emit('profile');
   },
   export() { return JSON.stringify({ app: 'zap-arcade', profile: P }, null, 1); },
+  /* copia profunda y reemplazo completo (los usa la sincronización entre equipos) */
+  snapshot: () => JSON.parse(JSON.stringify(P)),
+  replace(p) { return Z.profile.import(JSON.stringify({ app: 'zap-arcade', profile: p })); },
   import(txt) {
     try {
       const o = JSON.parse(txt), p = o && o.profile;

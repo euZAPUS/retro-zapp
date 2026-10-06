@@ -107,7 +107,7 @@ Z.setSkin = id => {
   if (!cur || !cur.meta.skins) return;
   const s = cur.meta.skins.find(x => x.id === id); if (!s) return;
   if ((s.lvl || 0) > Z.profile.level().lvl) { Z.sfx.nomatch(); Z.toast({ kind: 'lvl', title: 'Estilo bloqueado', text: s.name + ' se desbloquea en el nivel ' + s.lvl, icon: 'lock' }); return; }
-  store.set('skin:' + cur.id, id);
+  store.set('skin:' + cur.id, id); store.set('cfg-at', Date.now()); Z.emit('cfg-changed');
   if (cur.inst.setSkin) cur.inst.setSkin(id);
   buildSkins2(); Z.sfx.click(); Z.profile.unlock('skinner');
 };
@@ -323,7 +323,7 @@ function syncSettingsUI() {
   $('#opt-glass').disabled = cfg.low; $('#opt-tilt').disabled = cfg.low || !canHover; $('#opt-crt').disabled = cfg.low;
   $('#vol').value = cfg.vol;
 }
-function applyCfg(resize) {
+function applyCfg(resize, silent) {
   if (!Z.profile.unlockedSkin(cfg.skin)) cfg.skin = 'neon';
   root.dataset.skin = cfg.skin;
   if (cfg.accent) root.style.setProperty('--cyan', cfg.accent); else root.style.removeProperty('--cyan');
@@ -337,7 +337,9 @@ function applyCfg(resize) {
   Z.redraw();
   syncSettingsUI();
   store.set('cfg', cfg);
+  if (!silent) { store.set('cfg-at', Date.now()); Z.emit('cfg-changed'); }
 }
+Z.on('cfg-sync', () => applyCfg(true, true));
 cfgBtn.addEventListener('click', () => setPanel(panel.hidden));
 document.addEventListener('pointerdown', e => { if (!panel.hidden && !panel.contains(e.target) && !cfgBtn.contains(e.target)) setPanel(false); });
 accentEl.addEventListener('input', () => { cfg.accent = accentEl.value; applyCfg(); Z.profile.unlock('custom'); });
@@ -519,7 +521,7 @@ $('#profBtn').addEventListener('click', () => openProfile());
    Arranque
    ===================================================================== */
 buildHub();
-applyCfg();
+applyCfg(false, true);
 if (!store.get('welcomed', false)) {
   store.set('welcomed', true);
   setTimeout(() => Z.toast({ kind: 'lvl', title: 'Bienvenido a ZAP Arcade', text: 'Juega para subir de nivel y desbloquear temas nuevos.', icon: 'star', ms: 6000 }), 900);
