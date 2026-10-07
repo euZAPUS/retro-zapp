@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Zero-Day Sweeper · buscaminas con cuatro dificultades */
 ZAP.register({
   id: 'sweeper', name: 'Zero-Day Sweeper', tag: 'busca los exploits sin pisarlos', genre: 'Puzzle', color: 'magenta', icon: 'sweeper',
@@ -260,6 +261,7 @@ ZAP.register({
         if (n >= 0) { K.setMode(IDS[n]); return true; }
         return false;
       },
+      state: () => ({ st, c, r, m, opened, flags, timer }),
       init() { newGame(); }
     };
   }

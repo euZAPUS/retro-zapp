@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Floppy Byte · vuelo infinito entre firewalls, con cuatro modos */
 ZAP.register({
   id: 'flappy', name: 'Floppy Byte', tag: 'aletea entre los firewalls', genre: 'Acción', color: 'cyan', icon: 'flappy',

@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Bug Smasher · aplasta bugs, esquiva las bombas */
 ZAP.register({
   id: 'whack', name: 'Bug Smasher', tag: 'aplasta bugs, evita las bombas', genre: 'Reflejos', color: 'amber', icon: 'whack',

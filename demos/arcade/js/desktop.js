@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* ZAP Arcade · integración con la app de escritorio (Electron).
    Solo actúa si existe window.zapDesktop (lo inyecta preload.js); en la web normal no hace nada. */
 (() => {

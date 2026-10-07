@@ -14,6 +14,7 @@ Portfolio web estático de demos interactivas. Sin build ni dependencias: HTML/C
   - `css/arcade.css`: tokens de tema, cristal, fondos, marcos de pantalla, hub, perfil, avisos.
   - `js/core.js`: núcleo compartido (`window.ZAP`): ajustes, audio, lienzo, partículas, textos flotantes, marcador, iconos pixel, **perfil** (récords por juego y modo, XP/nivel, logros, racha, tiempo jugado), avisos y confeti.
   - `js/ui.js`: hub, navegación por hash, selector de modos, ajustes, modal de perfil.
+  - `js/sync.js`: sincronización del perfil entre equipos con un Gist secreto de GitHub y un token (`gist`). Fusión a tres bandas (`ZAP.sync.merge`): contadores = remoto + lo nuevo local desde la última sync; récords = el mejor; logros = unión. En escritorio el token va cifrado con `safeStorage` (IPC `zap:secret:*` en `desktop/main.js`).
   - `js/games/<id>.js`: un archivo por juego. Se registra con `ZAP.register({...})`.
 
 ## Cómo añadir un juego al arcade
@@ -36,3 +37,11 @@ Portfolio web estático de demos interactivas. Sin build ni dependencias: HTML/C
 - Las versiones las numera el workflow (`1.0.<nº de ejecución>`); no hace falta tocar `version` en `desktop/package.json`.
 - Cualquier cambio en `demos/arcade/` o `desktop/` que llegue a `main` publica una versión nueva automáticamente.
 - macOS sin firmar no puede autoactualizarse; Windows y Linux (AppImage) sí.
+
+## Licencia
+- Todo el código es © 2026 euZAPUS, todos los derechos reservados (`LICENSE`). Mantén la cabecera `/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */` en los archivos JS/CSS nuevos.
+- Si añades una dependencia o recurso de terceros, anótalo con su licencia en `THIRD_PARTY_NOTICES.md`.
+
+## Pruebas
+- `node tests/sync-e2e.js` (con `python3 -m http.server 8765`): dos «PCs» y un servidor GitHub simulado; comprueba fusión, idempotencia, jugar durante la sync, aspecto, token inválido y desconexión.
+- Al añadir campos al perfil, decide cómo se fusionan en `mergeProfile` (`js/sync.js`).

@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Pong · contra la IA (tres niveles) o contra la pared (Frontón) */
 ZAP.register({
   id: 'pong', name: 'Neon Pong', tag: 'duelo clásico contra la IA o la pared', genre: 'Versus', color: 'cyan', icon: 'pong',

@@ -1,5 +1,6 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* ZAP Arcade · proceso principal de Electron: ventana, menú y actualizaciones automáticas desde GitHub Releases. */
-const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
@@ -48,6 +49,16 @@ async function runUpdate() {
   } catch (e) { onError(e); }
   return state;
 }
+/* ---------- token de sincronización: se guarda cifrado con el sistema (DPAPI en Windows) ---------- */
+const secretFile = () => path.join(app.getPath('userData'), 'sync-token.bin');
+ipcMain.handle('zap:secret:get', () => {
+  try { if (!fs.existsSync(secretFile()) || !safeStorage.isEncryptionAvailable()) return ''; return safeStorage.decryptString(fs.readFileSync(secretFile())); } catch (e) { return ''; }
+});
+ipcMain.handle('zap:secret:set', (_e, v) => {
+  try { if (typeof v !== 'string' || !v || v.length > 300 || !safeStorage.isEncryptionAvailable()) return false; fs.writeFileSync(secretFile(), safeStorage.encryptString(v)); return true; } catch (e) { return false; }
+});
+ipcMain.handle('zap:secret:del', () => { try { fs.rmSync(secretFile(), { force: true }); } catch (e) { /* nada */ } return true; });
+
 ipcMain.handle('zap:update:get', () => state);
 ipcMain.handle('zap:update:run', () => runUpdate());
 

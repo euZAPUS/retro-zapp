@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Worm · snake con seis modos de juego (estilo "modos" del snake de Google) */
 ZAP.register({
   id: 'worm', name: 'Worm', tag: 'come paquetes y no te cortes', genre: 'Acción', color: 'lime', icon: 'worm',
@@ -271,6 +272,7 @@ ZAP.register({
         return false;
       },
       setSkin(id) { skin = id; K.redraw(); },
+      state: () => ({ st, score, wrap: !!M.wrap, dir: { ...dir }, body: body.map(s => ({ x: s.x, y: s.y })), foods: foods.map(f => ({ x: f.x, y: f.y, kind: f.kind })), walls: Array.from(walls) }),
       init() { reset(); }
     };
   }

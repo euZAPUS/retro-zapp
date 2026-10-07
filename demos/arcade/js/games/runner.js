@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Glitch Runner · runner infinito con cuatro modos */
 ZAP.register({
   id: 'runner', name: 'Glitch Runner', tag: 'salta firewalls, agáchate ante drones', genre: 'Acción', color: 'cyan', icon: 'runner',
@@ -321,6 +322,7 @@ ZAP.register({
         return false;
       },
       setSkin(id) { skin = id; K.redraw(); },
+      state: () => ({ st, score, py, speed, obs: obs.map(o => ({ k: o.k, x: o.x, y: o.y, w: o.w, h: o.h })) }),
       init: reset
     };
   }

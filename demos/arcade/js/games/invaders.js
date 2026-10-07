@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Zap Invaders · defiende la base de oleadas de invasores */
 ZAP.register({
   id: 'invaders', name: 'Zap Invaders', tag: 'frena la invasión pixelada', genre: 'Acción', color: 'lime', icon: 'invaders',

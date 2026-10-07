@@ -1,3 +1,4 @@
+/* © 2026 euZAPUS · Todos los derechos reservados. Ver LICENSE. */
 /* Zap Blocks · tetris con hold, fantasma, bloqueo con retardo y cuatro modos */
 ZAP.register({
   id: 'tetris', name: 'Zap Blocks', tag: 'encaja piezas y limpia líneas', genre: 'Puzzle', color: 'violet', icon: 'tetris',

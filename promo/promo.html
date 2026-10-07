@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>ZAP Arcade · Anuncio de 30 s</title>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:#000;color:#f5f5f7;font-family:Inter,'SF Pro Display',-apple-system,'Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}
+.abs{position:absolute}
+.scene{position:absolute;inset:0;display:none;will-change:transform,opacity}
+.h1{position:absolute;margin:0;font-weight:700;letter-spacing:-.045em;line-height:1.02;white-space:nowrap}
+.sub{position:absolute;margin:0;font-weight:400;letter-spacing:-.01em;color:#86868b;white-space:nowrap}
+.grad-a{background:linear-gradient(90deg,#4df0ff,#9b7bff 60%,#ff4d8d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-b{background:linear-gradient(90deg,#ffc857,#ff4d8d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-c{background:linear-gradient(90deg,#a6ff6b,#4df0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pix{font-family:Silkscreen,'Courier New',monospace;font-weight:700;letter-spacing:.08em}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+/* ventana tipo macOS */
+.win{position:absolute;border-radius:22px;overflow:hidden;background:#0a0a0f;box-shadow:0 60px 140px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.12),0 0 90px -20px var(--glow,rgba(77,240,255,.35))}
+.win .bar{height:44px;background:linear-gradient(#26262c,#1b1b20);display:flex;align-items:center;gap:9px;padding:0 18px;position:relative}
+.win .bar i{width:13px;height:13px;border-radius:50%;display:block}
+.win .bar b{position:absolute;left:0;right:0;text-align:center;font:500 15px Inter,sans-serif;color:#9a9aa2;letter-spacing:0}
+.win .body{position:relative;overflow:hidden}
+.win img,.card img{position:absolute;display:block}
+.card{position:absolute;border-radius:30px;overflow:hidden;background:#09090d;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 90px -30px rgba(0,0,0,.9)}
+.card .crop{position:absolute;overflow:hidden;border-radius:12px}
+.chip{position:absolute;font:600 22px Inter,sans-serif;color:#d2d2d7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:6px 16px;border-radius:99px;letter-spacing:-.01em}
+.toastx{position:absolute;display:flex;gap:18px;align-items:center;padding:22px 30px;border-radius:24px;background:rgba(18,21,40,.94);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 40px 80px -20px #000,0 0 60px -10px rgba(166,255,107,.5);font-family:Inter,sans-serif}
+.toastx b{display:block;font-size:22px;color:#a6ff6b;letter-spacing:.02em}
+.toastx span{font-size:26px;color:#f5f5f7;font-weight:500}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="abs" style="inset:0"></div>
+  <div id="scenes"></div>
+  <canvas id="confetti" class="abs" width="1920" height="1080" style="left:0;top:0;pointer-events:none"></canvas>
+  <div id="vignette" class="abs" style="inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55));pointer-events:none"></div>
+  <div id="fade" class="abs" style="inset:0;background:#000;opacity:0;pointer-events:none"></div>
+</div>
+<script>
+'use strict';
+/* ====================== utilidades ====================== */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const oq = x => 1 - Math.pow(1 - x, 4), oc = x => 1 - Math.pow(1 - x, 3);
+const io = x => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const PAL = { cyan: '#4df0ff', magenta: '#ff4d8d', amber: '#ffc857', lime: '#a6ff6b', violet: '#9b7bff' };
+const $ = id => document.getElementById(id);
+function el(tag, cls, parent, css, html) {
+  const e = document.createElement(tag); if (cls) e.className = cls; if (css) e.style.cssText = css; if (html != null) e.innerHTML = html;
+  if (parent) parent.append(e); return e;
+}
+const imgs = [];            // imágenes con fotograma dinámico
+function frameImg(parent, base, css) {
+  const i = el('img', '', parent, css); i.dataset.base = base; i._cur = ''; imgs.push(i); return i;
+}
+function setFrame(img, n) {
+  const f = img.dataset.base.replace('%', String(Math.max(1, n)).padStart(4, '0'));
+  if (img._cur !== f) { img._cur = f; img.src = f; }
+}
+const FPS = 30;
+const WL = 770, WT = 190;
+const SC = [
+  { id: 's1', a: 0, b: 2.8 }, { id: 's2', a: 2.8, b: 5.6 }, { id: 's3', a: 5.6, b: 10.2 }, { id: 's4', a: 10.2, b: 13.6 }, { id: 's5', a: 13.6, b: 18.0 },
+  { id: 's6', a: 18.0, b: 21.0 }, { id: 's7', a: 21.0, b: 23.8 }, { id: 's8', a: 23.8, b: 27.0 }, { id: 's9', a: 27.0, b: 30.0 }
+];
+const scenes = {};
+SC.forEach(s => { s.el = el('div', 'scene', $('scenes')); scenes[s.id] = s; });
+
+function letters(parent, text, css, cls) {
+  const wrap = el('div', 'abs ' + (cls || ''), parent, css); const sp = [];
+  [...text].forEach(ch => { const s = el('span', '', wrap, 'display:inline-block;white-space:pre', ch === ' ' ? ' ' : ch); sp.push(s); });
+  return { wrap, sp };
+}
+function revealLetters(L, t, a, step, dur) {
+  L.sp.forEach((s, i) => { const x = oq(P(t, a + i * step, a + i * step + dur)); s.style.opacity = x; s.style.transform = 'translateY(' + (1 - x) * 40 + 'px) scale(' + lerp(.92, 1, x) + ')'; });
+}
+function pop(e, x, extra) { e.style.opacity = clamp(x * 1.6); e.style.transform = (extra || '') + ' scale(' + lerp(.6, 1, back(clamp(x))) + ')'; }
+
+/* ====================== datos ====================== */
+let ICONS = null, ORDER = null; const META = {}; const STILL = {};
+async function load() {
+  const j = await (await fetch('icons.json')).json(); ICONS = j.icons; ORDER = j.order;
+  for (const n of ['worm', 'tetris', 'runner', 'breakout', 'invaders', 'pong', 'g2048', 'connect4', 'desktop']) META[n] = await (await fetch('clips/' + n + '.json')).json();
+  for (const n of ['resumen', 'records', 'logros']) STILL[n] = await (await fetch('stills/profile-' + n + '.json')).json();
+}
+function iconCanvas(rows, color, px) {
+  const c = document.createElement('canvas'); c.width = c.height = 10 * px; const g = c.getContext('2d'); g.fillStyle = color;
+  rows.forEach((r, y) => { for (let x = 0; x < 10; x++) if (r[x] === '#') g.fillRect(x * px, y * px, px, px); });
+  return c;
+}
+
+/* ====================== construcción de escenas ====================== */
+const R = {};   // referencias por escena
+function build() {
+  /* ---- S1: logo ---- */
+  {
+    const s = scenes.s1.el, r = R.s1 = {};
+    r.glow = el('div', 'abs', s, 'left:560px;top:140px;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(77,240,255,.45),transparent 62%)');
+    const box = el('div', 'abs', s, 'left:840px;top:250px;width:240px;height:240px');
+    r.px = []; const bolt = ICONS.bolt;
+    bolt.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') { const d = el('div', 'abs', box, `left:${x * 24}px;top:${y * 24}px;width:24px;height:24px;background:#4df0ff;box-shadow:0 0 28px #4df0ff`); r.px.push({ d, k: (y * .09) + (x * .035) }); } }));
+    r.box = box;
+    r.word = letters(s, 'ZAP ARCADE', 'left:0;right:0;top:560px;text-align:center;font-size:132px;color:#fff;text-shadow:0 0 40px rgba(77,240,255,.55)', 'pix');
+    r.sub = el('p', 'sub', s, 'left:0;right:0;top:760px;text-align:center;font-size:46px;color:#a1a1a6', '13 juegos. Un solo arcade.');
+  }
+  /* ---- S2: 13 juegos ---- */
+  {
+    const s = scenes.s2.el, r = R.s2 = {};
+    r.h = el('h1', 'h1', s, 'left:0;right:0;top:110px;text-align:center;font-size:250px', '<span class="grad-a">13</span> juegos.');
+    r.sub = el('p', 'sub', s, 'left:0;right:0;top:420px;text-align:center;font-size:48px', 'Hechos desde cero. Sin librerías.');
+    r.icons = [];
+    const cols = 7, size = 130, gap = 56;
+    ORDER.forEach((g, i) => {
+      const row = i < 7 ? 0 : 1, col = i < 7 ? i : i - 7, n = row ? 6 : 7;
+      const x = (1920 - (n * size + (n - 1) * gap)) / 2 + col * (size + gap), y = 590 + row * (size + 70);
+      const c = iconCanvas(ICONS[g.icon], PAL[g.color], 13); c.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;image-rendering:pixelated;filter:drop-shadow(0 0 22px ${PAL[g.color]}99)`;
+      s.append(c); r.icons.push({ c, i, x, y });
+    });
+  }
+  /* ---- S3: modos (Worm) ---- */
+  {
+    const s = scenes.s3.el, r = R.s3 = {}; const m = META.worm, sc = 0.93;
+    r.h1 = el('h1', 'h1', s, 'left:110px;top:230px;font-size:132px', 'Mil formas');
+    r.h2 = el('h1', 'h1 grad-b', s, 'left:110px;top:366px;font-size:132px', 'de jugar.');
+    r.sub = el('p', 'sub', s, 'left:116px;top:560px;font-size:38px;line-height:1.35', 'Hasta seis modos por juego.<br>Cada uno cambia las reglas.');
+    r.pillBox = el('div', 'abs', s, 'left:110px;top:760px;width:720px;height:120px');
+    r.pills = [['Sin muros', '#9b7bff'], ['Laberinto', '#ff4d8d'], ['Veneno', '#a6ff6b'], ['Rápido', '#ffc857']].map(([t, c]) => el('div', 'abs pix', r.pillBox, `left:0;top:0;font-size:60px;color:${c};text-shadow:0 0 36px ${c}88;white-space:nowrap`, '→ ' + t));
+    const w = r.win = el('div', 'win', s, `left:870px;top:80px;width:${m.clip.width * sc}px;height:${44 + m.clip.height * sc}px;--glow:rgba(155,123,255,.35)`);
+    w.innerHTML = '<div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><b>ZAP Arcade · Worm</b></div>';
+    r.body = el('div', 'body', w, `height:${m.clip.height * sc}px`);
+    r.img = frameImg(r.body, 'clips/worm/%.jpg', `left:0;top:0;width:${m.clip.width * sc}px`);
+    r.sc = sc;
+  }
+  /* ---- S4: temas ---- */
+  {
+    const s = scenes.s4.el, r = R.s4 = {};
+    r.h = el('h1', 'h1', s, 'left:0;right:0;top:70px;text-align:center;font-size:150px', 'Tu <span class="grad-a">estilo.</span>');
+    r.sub = el('p', 'sub', s, 'left:0;right:0;top:235px;text-align:center;font-size:44px', 'Nueve temas. Cuatro fondos. Tu color.');
+    const W = 1280, H = 900;
+    r.win = el('div', 'win', s, `left:${(1920 - W) / 2}px;top:300px;width:${W}px;height:${44 + H}px`);
+    r.win.innerHTML = '<div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><b>ZAP Arcade</b></div>';
+    const body = el('div', 'body', r.win, `height:${H}px`);
+    r.themes = ['neon', 'vapor', 'sunset', 'gold', 'ice', 'matrix'].map((k, i) => { const im = el('img', '', body, `left:0;top:0;width:${W}px;height:${H}px;object-fit:cover;object-position:top`); im.src = `stills/hub-${k}.jpg`; return im; });
+    r.glow = ['#4df0ff', '#ff2fb9', '#ff9a4d', '#ffcb3d', '#0a74f0', '#39ff88'];
+  }
+  /* ---- S5: cuadrícula de juegos ---- */
+  {
+    const s = scenes.s5.el, r = R.s5 = {};
+    r.h = el('h1', 'h1', s, 'left:0;right:0;top:50px;text-align:center;font-size:130px', 'Rápido. <span class="grad-c">Fluido.</span>');
+    r.sub = el('p', 'sub', s, 'left:0;right:0;top:200px;text-align:center;font-size:42px', 'Canvas puro, 60 fps y cero dependencias.');
+    const names = [['tetris', 'Zap Blocks'], ['runner', 'Glitch Runner'], ['breakout', 'Brick Breaker'], ['invaders', 'Zap Invaders'], ['pong', 'Neon Pong'], ['g2048', 'Zap 2048']];
+    const tw = 560, th = 372, gx = 40, gy = 36, x0 = (1920 - (3 * tw + 2 * gx)) / 2, y0 = 286;
+    r.tiles = names.map(([k, label], i) => {
+      const m = META[k], x = x0 + (i % 3) * (tw + gx), y = y0 + ((i / 3) | 0) * (th + gy);
+      const card = el('div', 'card', s, `left:${x}px;top:${y}px;width:${tw}px;height:${th}px`);
+      const sc = Math.min((tw - 30) / m.screen.w, (th - 70) / m.screen.h), cw = m.screen.w * sc, ch = m.screen.h * sc;
+      const crop = el('div', 'crop', card, `left:${(tw - cw) / 2}px;top:${54 + (th - 70 - ch) / 2}px;width:${cw}px;height:${ch}px`);
+      frameImg(crop, `clips/${k}/%.jpg`, `left:${-m.screen.x * sc}px;top:${-m.screen.y * sc}px;width:${m.clip.width * sc}px`);
+      el('div', 'chip', card, 'left:20px;top:14px;font-size:20px;padding:4px 14px', label);
+      return { card, x, y, i, k };
+    });
+  }
+  /* ---- S6: IA ---- */
+  {
+    const s = scenes.s6.el, r = R.s6 = {};
+    r.h = el('h1', 'h1', s, 'left:0;right:0;top:55px;text-align:center;font-size:140px', 'Rivales que <span class="grad-b">piensan.</span>');
+    r.sub = el('p', 'sub mono', s, 'left:0;right:0;top:225px;text-align:center;font-size:30px;color:#a1a1a6', 'minimax · poda alfa-beta · 3 niveles de IA');
+    r.cards = [['connect4', 'Cuatro en Línea', 120, 300, 800, 720], ['pong', 'Neon Pong', 980, 300, 820, 720]].map(([k, label, x, y, w, h]) => {
+      const m = META[k], card = el('div', 'card', s, `left:${x}px;top:${y}px;width:${w}px;height:${h}px`);
+      const sc = Math.min((w - 40) / m.screen.w, (h - 110) / m.screen.h), cw = m.screen.w * sc, ch = m.screen.h * sc;
+      const crop = el('div', 'crop', card, `left:${(w - cw) / 2}px;top:${64 + (h - 90 - ch) / 2}px;width:${cw}px;height:${ch}px`);
+      frameImg(crop, `clips/${k}/%.jpg`, `left:${-m.screen.x * sc}px;top:${-m.screen.y * sc}px;width:${m.clip.width * sc}px`);
+      el('div', 'chip', card, 'left:24px;top:16px', label); return { card, x, y };
+    });
+  }
+  /* ---- S7: perfil ---- */
+  {
+    const s = scenes.s7.el, r = R.s7 = {};
+    r.h1 = el('h1', 'h1', s, 'left:120px;top:250px;font-size:150px', 'Tu perfil.');
+    r.h2 = el('h1', 'h1 grad-c', s, 'left:120px;top:400px;font-size:150px', 'Tus récords.');
+    r.sub = el('p', 'sub', s, 'left:126px;top:600px;font-size:40px;line-height:1.35', 'Niveles, 45 logros y la gráfica<br>de cada una de tus partidas.');
+    r.shots = ['resumen', 'records', 'logros'].map((k, i) => {
+      const m = STILL[k], sc = Math.min(1.05, 930 / (m.h + 12)), w = (m.w + 12) * sc, h = (m.h + 12) * sc;
+      const win = el('div', 'win', s, `left:${1080 + (780 - w) / 2 + 20}px;top:${(1080 - h) / 2 - 10}px;width:${w}px;height:${h}px;--glow:rgba(77,240,255,.3);border-radius:26px`);
+      const im = el('img', '', win, `left:0;top:0;width:${w}px;height:${h}px`); im.src = `stills/profile-${k}.jpg`; return win;
+    });
+    r.toast = el('div', 'toastx', s, 'left:120px;top:800px;');
+    r.toast.append(iconCanvas(ICONS.trophy, '#a6ff6b', 6)); r.toast.firstChild.style.cssText = 'width:60px;height:60px;image-rendering:pixelated';
+    const tx = el('div', '', r.toast, '', '<b>NUEVO RÉCORD</b><span>Zap Blocks · Maratón: 18 400</span>');
+  }
+  /* ---- S8: escritorio ---- */
+  {
+    const s = scenes.s8.el, r = R.s8 = {}; const m = META.desktop, X0 = 560, Y0 = 0, CW = 720, CH = 470, W = 1120, sc = W / CW, H = CH * sc;
+    r.h1 = el('h1', 'h1', s, 'left:100px;top:170px;font-size:130px', 'En tu');
+    r.h2 = el('h1', 'h1 grad-a', s, 'left:100px;top:290px;font-size:130px', 'escritorio.');
+    r.h3 = el('h1', 'h1', s, 'left:100px;top:490px;font-size:130px', 'Siempre');
+    r.h4 = el('h1', 'h1', s, 'left:100px;top:610px;font-size:130px;color:#a1a1a6', 'al día.');
+    const win = r.win = el('div', 'win', s, `left:${WL}px;top:${WT}px;width:${W}px;height:${44 + H}px`);
+    win.innerHTML = '<div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><b>ZAP Arcade</b></div>';
+    r.body = el('div', 'body', win, `height:${H}px`);
+    r.img = frameImg(r.body, 'clips/desktop/%.jpg', `left:${-X0 * sc}px;top:${-Y0 * sc}px;width:${m.clip.width * sc}px`);
+    r.flash = el('div', 'abs', r.body, 'inset:0;background:#fff;opacity:0');
+    r.sc = sc; r.W = W; r.H = H; r.X0 = X0; r.Y0 = Y0;
+    r.cur = el('div', 'abs', s, 'left:0;top:0;width:40px;height:48px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))', '<svg width="40" height="48" viewBox="0 0 20 24"><path d="M2 1 L2 19 L6.5 15 L9.6 22 L12.4 20.8 L9.4 14 L15.5 14 Z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>');
+    r.ring = el('div', 'abs', s, 'width:60px;height:60px;border-radius:50%;border:4px solid #4df0ff;opacity:0');
+  }
+  /* ---- S9: final ---- */
+  {
+    const s = scenes.s9.el, r = R.s9 = {};
+    r.glow = el('div', 'abs', s, 'left:460px;top:60px;width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgba(77,240,255,.4),rgba(155,123,255,.15) 45%,transparent 68%)');
+    const box = el('div', 'abs', s, 'left:870px;top:170px;width:180px;height:180px'); r.px = [];
+    ICONS.bolt.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') { const d = el('div', 'abs', box, `left:${x * 18}px;top:${y * 18}px;width:18px;height:18px;background:#4df0ff;box-shadow:0 0 22px #4df0ff`); r.px.push({ d, k: y * .05 + x * .02 }); } }));
+    r.word = letters(s, 'ZAP ARCADE', 'left:0;right:0;top:400px;text-align:center;font-size:150px;color:#fff;text-shadow:0 0 50px rgba(77,240,255,.6)', 'pix');
+    r.tag = el('h1', 'h1', s, 'left:0;right:0;top:620px;text-align:center;font-size:96px;font-weight:300', 'Disponible <span class="grad-a" style="font-weight:700">ahora.</span>');
+    r.plat = el('p', 'sub', s, 'left:0;right:0;top:790px;text-align:center;font-size:36px;color:#a1a1a6', 'Windows · macOS · Linux  —  con actualizaciones automáticas');
+    r.gh = el('p', 'sub mono', s, 'left:0;right:0;top:880px;text-align:center;font-size:30px;color:#6e6e73', 'github.com/euZAPUS/retro-zapp');
+  }
+}
+
+/* ====================== fondo y confeti ====================== */
+const bg = $('bg');
+function updateBg(t) {
+  const cols = [[77, 240, 255], [155, 123, 255], [255, 77, 141]];
+  let a = cols[0], b = cols[1], c = cols[2];
+  if (t >= 10.2 && t < 13.6) { const k = Math.min(5, Math.floor((t - 10.4) / .5)); const th = [[77, 240, 255], [255, 47, 185], [255, 154, 77], [255, 203, 61], [10, 116, 240], [57, 255, 136]][Math.max(0, k)]; a = th; b = [155, 123, 255]; }
+  if (t >= 18 && t < 21) { a = [255, 200, 87]; b = [255, 77, 141]; }
+  if (t >= 21 && t < 23.8) { a = [166, 255, 107]; b = [77, 240, 255]; }
+  const x1 = 28 + Math.sin(t * .5) * 14, y1 = 30 + Math.cos(t * .4) * 12, x2 = 74 + Math.cos(t * .45) * 14, y2 = 72 + Math.sin(t * .35) * 12;
+  const al = t < 2.6 ? .5 : .32;
+  bg.style.background = `radial-gradient(900px 700px at ${x1}% ${y1}%,rgba(${a},${al}),transparent 70%),radial-gradient(1000px 800px at ${x2}% ${y2}%,rgba(${b},${al * .8}),transparent 72%),#000`;
+}
+const cf = $('confetti').getContext('2d');
+const CONF = (() => { let s = 99; const r = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  return Array.from({ length: 110 }, () => { const a = -Math.PI * (.15 + r() * .7), v = 500 + r() * 900; return { vx: Math.cos(a) * v, vy: Math.sin(a) * v, w: 8 + r() * 12, h: 5 + r() * 8, rot: r() * 6, vr: (r() - .5) * 14, c: ['#4df0ff', '#ff4d8d', '#ffc857', '#a6ff6b', '#9b7bff'][(r() * 5) | 0] }; }); })();
+function drawConfetti(tau) {
+  cf.clearRect(0, 0, 1920, 1080); if (tau < 0 || tau > 2.4) return;
+  for (const p of CONF) { const x = 1420 + p.vx * (1 - Math.exp(-tau * 2.2)) / 2.2, y = 820 + p.vy * (1 - Math.exp(-tau * 2.2)) / 2.2 + 900 * tau * tau * .5;
+    cf.save(); cf.globalAlpha = clamp(1 - (tau - 1.6) / .8); cf.translate(x, y); cf.rotate(p.rot + p.vr * tau); cf.fillStyle = p.c; cf.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); cf.restore(); }
+}
+
+/* ====================== línea de tiempo ====================== */
+function sceneAlpha(s, t) {
+  const first = s.id === 's1', last = s.id === 's9';
+  const inn = first ? 1 : oc(P(t, s.a - .25, s.a + .35)), out = last ? 1 : 1 - oc(P(t, s.b - .35, s.b + .25));
+  return Math.min(inn, out);
+}
+function renderAt(t) {
+  updateBg(t);
+  SC.forEach(s => {
+    const a = sceneAlpha(s, t), vis = t >= s.a - .26 && t <= s.b + .26;
+    s.el.style.display = vis ? 'block' : 'none'; if (!vis) return;
+    const outp = oc(P(t, s.b - .35, s.b + .25)), inp = 1 - oc(P(t, s.a - .25, s.a + .35));
+    s.el.style.opacity = a; s.el.style.transform = `translateY(${inp * 26}px) scale(${lerp(1, 1.035, s.id === 's9' ? 0 : outp) * lerp(1, .985, inp)})`;
+  });
+  const T = id => t - scenes[id].a;
+  /* S1 */
+  { const r = R.s1, u = T('s1');
+    r.px.forEach(p => { const x = back(clamp((u - .15 - p.k) / .35)); p.d.style.transform = `scale(${clamp(x, 0, 1.15)})`; p.d.style.opacity = clamp(x * 2); });
+    r.box.style.transform = `scale(${lerp(1, 1.12, oc(P(u, .6, 2.8)))})`;
+    r.glow.style.opacity = oc(P(u, 0, 1)) * (.8 + .2 * Math.sin(u * 3)); r.glow.style.transform = `scale(${lerp(.7, 1.1, oc(P(u, 0, 2.8)))})`;
+    revealLetters(r.word, u, .85, .06, .5); const sx = oq(P(u, 1.7, 2.3)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 24}px)`; }
+  /* S2 */
+  { const r = R.s2, u = T('s2'); const hx = oq(P(u, .05, .65)); r.h.style.opacity = hx; r.h.style.transform = `translateY(${(1 - hx) * 70}px) scale(${lerp(.94, 1, hx)})`;
+    const sx = oq(P(u, .7, 1.2)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 24}px)`;
+    r.icons.forEach(o => { const x = P(u, .35 + o.i * .07, .35 + o.i * .07 + .5); const fl = Math.sin(u * 2.4 + o.i) * 6; o.c.style.opacity = clamp(x * 2); o.c.style.transform = `translateY(${(1 - oc(x)) * 70 + fl * oc(x)}px) scale(${lerp(.4, 1, back(x))})`; }); }
+  /* S3 */
+  { const r = R.s3, u = T('s3'), m = META.worm;
+    const wx = oq(P(u, 0, .9)); r.win.style.transform = `perspective(2400px) translateX(${(1 - wx) * 260}px) rotateY(${lerp(-14, -6, wx) + Math.sin(u * .6) * 1.2}deg) rotateX(${lerp(5, 2.5, wx)}deg) scale(${lerp(.92, 1, wx) * (1 + u * .006)})`; r.win.style.opacity = clamp(wx * 2);
+    [r.h1, r.h2].forEach((h, i) => { const x = oq(P(u, .15 + i * .15, .85 + i * .15)); h.style.opacity = x; h.style.transform = `translateY(${(1 - x) * 60}px)`; });
+    const sx = oq(P(u, .75, 1.3)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 20}px)`;
+    const fr = 3 + Math.floor(u * FPS); setFrame(r.img, Math.min(fr, 160));
+    const ev = [0, (40 - 3) / FPS, (80 - 3) / FPS, (120 - 3) / FPS]; // instantes de cambio de modo
+    r.pills.forEach((p, i) => { const a0 = i === 0 ? .6 : ev[i], a1 = i === 3 ? 99 : ev[i + 1]; const inx = back(clamp((u - a0) / .45)), outx = clamp((u - (a1 - .12)) / .12);
+      p.style.opacity = (u < a0 ? 0 : 1 - outx); p.style.transform = `translateY(${(1 - clamp(inx, 0, 1.2)) * 50 + outx * -30}px) scale(${lerp(.92, 1, clamp(inx, 0, 1))})`; }); }
+  /* S4 */
+  { const r = R.s4, u = T('s4');
+    const hx = oq(P(u, 0, .6)); r.h.style.opacity = hx; r.h.style.transform = `translateY(${(1 - hx) * 50}px)`; const sx = oq(P(u, .3, .9)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 20}px)`;
+    const wx = oq(P(u, 0, .9)); r.win.style.transform = `perspective(2600px) translateY(${(1 - wx) * 200}px) rotateX(${lerp(14, 5, wx) + Math.sin(u) * .6}deg) rotateY(${Math.sin(u * .8) * 2.4}deg) scale(${lerp(.9, 1, wx)})`; r.win.style.opacity = clamp(wx * 2);
+    r.win.style.setProperty('--glow', 'rgba(' + hexRgb(r.glow[Math.max(0, Math.min(5, Math.floor((u - .2) / .5)))]) + ',.45)');
+    r.themes.forEach((im, i) => { if (i === 0) { im.style.clipPath = 'none'; return; } const x = oq(P(u, .2 + i * .5 - .5 + .5, .2 + i * .5 + .5)); const st = .2 + i * .5; const q = oq(P(u, st, st + .5)); im.style.clipPath = q <= 0 ? 'circle(0 at 88% 6%)' : `circle(${q * 170}% at 88% 6%)`; im.style.zIndex = i; }); }
+  /* S5 */
+  { const r = R.s5, u = T('s5');
+    const hx = oq(P(u, 0, .6)); r.h.style.opacity = hx; r.h.style.transform = `translateY(${(1 - hx) * 50}px)`; const sx = oq(P(u, .25, .85)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 20}px)`;
+    r.tiles.forEach(o => { const x = oq(P(u, .15 + o.i * .12, .85 + o.i * .12)); o.card.style.opacity = clamp(x * 1.8);
+      o.card.style.transform = `perspective(1800px) translateY(${(1 - x) * 160}px) rotateX(${(1 - x) * 18}deg) scale(${lerp(.9, 1, x) * (1 + u * .004)})`;
+      const m = META[o.k]; setFrame(o.card.querySelector('img'), 4 + Math.floor(u * FPS)); }); }
+  /* S6 */
+  { const r = R.s6, u = T('s6');
+    const hx = oq(P(u, 0, .6)); r.h.style.opacity = hx; r.h.style.transform = `translateY(${(1 - hx) * 50}px)`; const sx = oq(P(u, .3, .9)); r.sub.style.opacity = sx;
+    r.cards.forEach((o, i) => { const x = oq(P(u, .1 + i * .15, .9 + i * .15)); o.card.style.opacity = clamp(x * 1.8); o.card.style.transform = `perspective(2200px) translateX(${(i ? 1 : -1) * (1 - x) * 220}px) rotateY(${(i ? -1 : 1) * (1 - x) * 16 + (i ? -1 : 1) * 2.5}deg) scale(${lerp(.92, 1, x)})`;
+      setFrame(o.card.querySelector('img'), (i ? 22 : 12) + Math.floor(u * FPS)); }); }
+  /* S7 */
+  { const r = R.s7, u = T('s7');
+    [r.h1, r.h2].forEach((h, i) => { const x = oq(P(u, .1 + i * .15, .8 + i * .15)); h.style.opacity = x; h.style.transform = `translateY(${(1 - x) * 60}px)`; });
+    const sx = oq(P(u, .7, 1.2)); r.sub.style.opacity = sx; r.sub.style.transform = `translateY(${(1 - sx) * 20}px)`;
+    const seg = Math.min(2, Math.floor(Math.max(0, u - .1) / .85));
+    r.shots.forEach((w, i) => { const q = oq(P(u - .1, i * .85 - .05, i * .85 + .45)); const prev = i < 2 ? oq(P(u - .1, (i + 1) * .85 - .05, (i + 1) * .85 + .35)) : 0;
+      w.style.opacity = i === 0 ? clamp(oq(P(u, 0, .6)) * 2) * (1 - prev) : q * (1 - prev); w.style.transform = `perspective(2200px) translateY(${(1 - (i === 0 ? oq(P(u, 0, .8)) : q)) * 90}px) rotateY(${-7 + Math.sin(u * 1.1) * 1.5}deg) rotateX(${2 + Math.sin(u) * .8}deg) scale(${lerp(.95, 1, q) * (1 + prev * .04)})`; w.style.zIndex = i; });
+    const tx = back(P(u, 1.05, 1.6)); r.toast.style.opacity = clamp(tx * 2) * (1 - oc(P(u, 2.4, 2.75))); r.toast.style.transform = `translateX(${(1 - clamp(tx, 0, 1)) * -300}px) scale(${lerp(.8, 1, clamp(tx, 0, 1))})`; }
+  /* S8 */
+  { const r = R.s8, u = T('s8'), m = META.desktop, k = 1.62;
+    [r.h1, r.h2, r.h3, r.h4].forEach((h, i) => { const x = oq(P(u, .05 + i * .12, .75 + i * .12)); h.style.opacity = x; h.style.transform = `translateY(${(1 - x) * 50}px)`; });
+    const wx = oq(P(u, 0, .8)); r.win.style.transform = `perspective(2400px) translateX(${(1 - wx) * 240}px) rotateY(${lerp(-12, -2, wx)}deg) scale(${lerp(.93, 1, wx)})`; r.win.style.opacity = clamp(wx * 2);
+    const f = Math.min(m.frames - 1, Math.floor(u * FPS * k)); setFrame(r.img, f + 1);
+    // flash de reinicio
+    r.flash.style.opacity = clamp(Math.min((f - 128) / 7, (146 - f) / 9)) * .9;
+    // cursor
+    const bx = WL + (m.button.x - r.X0) * r.sc, by = WT + 44 + (m.button.y - r.Y0) * r.sc, sx0 = WL + r.W * .3, sy0 = WT + 44 + r.H * .8;
+    const mv = io(P(f, 8, 52)), cx = lerp(sx0, bx, mv), cy = lerp(sy0, by, mv), press = clamp(1 - Math.abs(f - 57) / 5);
+    r.cur.style.transform = `translate(${cx}px,${cy}px) scale(${1 - press * .18})`; r.cur.style.opacity = oc(P(f, 4, 12)) * (1 - oc(P(f, 66, 80)));
+    r.ring.style.left = (bx - 30) + 'px'; r.ring.style.top = (by - 30) + 'px'; const rp = P(f, 57, 72); r.ring.style.opacity = rp > 0 && rp < 1 ? (1 - rp) * .9 : 0; r.ring.style.transform = `scale(${lerp(.4, 2.2, oc(rp))})`; }
+  /* S9 */
+  { const r = R.s9, u = T('s9');
+    r.px.forEach(p => { const x = back(clamp((u - .1 - p.k) / .35)); p.d.style.transform = `scale(${clamp(x, 0, 1.15)})`; p.d.style.opacity = clamp(x * 2); });
+    r.glow.style.opacity = oc(P(u, 0, .9)); r.glow.style.transform = `scale(${lerp(.8, 1.08, oc(P(u, 0, 3)))})`;
+    revealLetters(r.word, u, .55, .055, .5);
+    const tg = oq(P(u, 1.15, 1.75)); r.tag.style.opacity = tg; r.tag.style.transform = `translateY(${(1 - tg) * 40}px)`;
+    const pl = oq(P(u, 1.6, 2.1)); r.plat.style.opacity = pl; r.gh.style.opacity = oq(P(u, 1.85, 2.3)); }
+  drawConfetti(t - (scenes.s7.a + 1.1));
+  $('fade').style.opacity = clamp((t - 29.4) / .6);
+}
+function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); }
+
+window.seek = async t => {
+  renderAt(t);
+  await Promise.all(imgs.filter(i => i.src && i.offsetParent !== null || i._cur).map(i => (i.decode ? i.decode().catch(() => {}) : null)));
+  await document.fonts.ready;
+};
+window.promoReady = (async () => { await load(); build(); await document.fonts.load('700 100px Silkscreen'); await document.fonts.load('600 20px "JetBrains Mono"'); await document.fonts.ready; window.seek(0); return true; })();
+</script>
+</body>
+</html>
