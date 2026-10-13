@@ -1,6 +1,15 @@
-# retro-zapp
+<h1 align="center">🕹️ ZAP Arcade</h1>
 
-Portfolio de demos interactivas, sin build ni dependencias.
+<p align="center"><b>13 juegos retro, 51 modos y 45 logros.</b> HTML + Canvas 2D + Web Audio, sin build ni librerías.<br>
+<sub>Este repositorio (<code>retro-zapp</code>) es el portfolio de demos interactivas donde vive.</sub></p>
+
+<p align="center">
+  <a href="https://github.com/euZAPUS/retro-zapp/releases/latest"><img alt="Última versión" src="https://img.shields.io/github/v/release/euZAPUS/retro-zapp?style=flat-square&labelColor=09090a&color=ffae00"></a>
+  <a href="https://alvaro.sangon.eu"><img alt="Jugar en el portfolio" src="https://img.shields.io/badge/jugar-en%20el%20portfolio-eeeeef?style=flat-square&labelColor=09090a"></a>
+  <img alt="Plataformas" src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20%C2%B7%20Web-8d8f96?style=flat-square&labelColor=09090a">
+  <img alt="Código visible, todos los derechos reservados" src="https://img.shields.io/badge/c%C3%B3digo-visible%20%C2%B7%20derechos%20reservados-8d8f96?style=flat-square&labelColor=09090a">
+  <a href="https://alvaro.sangon.eu"><img alt="Portfolio" src="https://img.shields.io/badge/portfolio-alvaro.sangon.eu-ffae00?style=flat-square&labelColor=09090a"></a>
+</p>
 
 - [ZAP Arcade](demos/arcade/): 13 minijuegos con modos de juego, perfil con récords y logros, 9 temas, fondos, marcos de pantalla y animaciones.
   Juegos: Glitch Runner, Zero-Day Sweeper, Worm, Brick Breaker, Neon Pong, Zap Blocks, Zap 2048, Floppy Byte, Memory Match, Simon Zap, Zap Invaders, Bug Smasher y Cuatro en Línea.
